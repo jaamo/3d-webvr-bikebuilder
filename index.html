@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+
+		<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+		<script src="bower_components/threejs/build/three.min.js"></script>
+		<script src="bower_components/threejs/examples/js/loaders/ColladaLoader.js"></script>
+		<script src="bower_components/threejs/examples/js/postprocessing/EffectComposer.js"></script>
+		<script src="bower_components/threejs/examples/js/postprocessing/ShaderPass.js"></script>
+		<script src="bower_components/threejs/examples/js/postprocessing/RenderPass.js"></script>
+		<script src="js/ShaderExtras.js"></script>
+		<script src="bower_components/threejs/examples/js/shaders/CopyShader.js"></script>
+		<script src="bower_components/threejs/examples/js/postprocessing/MaskPass.js"></script>
+		<script src="bower_components/threejs/examples/js/postprocessing/BloomPass.js"></script>
+		<script src="bower_components/threejs/examples/js/shaders/ConvolutionShader.js"></script>
+		<script src="bower_components/threejs/examples/js/shaders/FXAAShader.js"></script>
+		<script src="bower_components/threejs/examples/js/controls/OrbitControls.js"></script>
+
+		<script src="js/BikeBuilder.js"></script>
+
+		<title>3D Bike Builder</title>
+	</head>
+	<style>
+	@import url(https://fonts.googleapis.com/css?family=Roboto);
+html, body, canvas {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: #202020;
+  font-family: roboto;
+}
+
+/* 3D container */
+canvas {
+  position: relative;
+  top: 50%;
+  transform: translateY(-50%);
+  margin: 0 auto;
+  display: block;
+}
+
+/****************************** Menu *************************************/
+/* Menu */
+.menu {
+  position: fixed;
+  ddisplay: none;
+  bottom: 2rem;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  text-align: center;
+}
+.menu__item {
+  background: black;
+  color: white;
+  display: inline-block;
+  padding: 0 1rem;
+  border-left: 3rem solid black;
+  line-height: 3rem;
+  margin-left: 0.5rem;
+}
+.menu__item--white {
+  border-color: white;
+}
+.menu__item--black {
+  border-color: #000000;
+}
+.menu__item--brown {
+  border-color: #936020;
+}
+
+/****************************** Menu 3d *************************************/
+/* Simple transition */
+.colortoggle3d {
+  display: inline-block;
+  margin: 0 2rem;
+  position: relative;
+  perspective: 500px;
+  height: 3rem;
+  width: 13rem;
+  -moz-transition: transform 0.2s ease-out;
+  -o-transition: transform 0.2s ease-out;
+  -webkit-transition: transform 0.2s ease-out;
+  transition: transform 0.2s ease-out;
+}
+.colortoggle3d:hover {
+  transform: translatey(-0.2rem);
+}
+.colortoggle3d:hover .colortoggle3d__label__front {
+  color: #ffffff;
+}
+.colortoggle3d--select1 .colortoggle3d__colors {
+  transform: rotatex(-10deg);
+}
+.colortoggle3d--select2 .colortoggle3d__colors {
+  transform: rotatex(-100deg);
+}
+.colortoggle3d--select3 .colortoggle3d__colors {
+  transform: rotatex(-190deg);
+}
+.colortoggle3d--select4 .colortoggle3d__colors {
+  transform: rotatex(-280deg);
+}
+.colortoggle3d__colors {
+  -moz-transition: transform 0.4s ease-out;
+  -o-transition: transform 0.4s ease-out;
+  -webkit-transition: transform 0.4s ease-out;
+  transition: transform 0.4s ease-out;
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  transform-style: preserve-3d;
+  transform: rotatex(-10deg);
+  z-index: 2;
+}
+.colortoggle3d__colors__block1, .colortoggle3d__colors__block2, .colortoggle3d__colors__block3, .colortoggle3d__colors__block4 {
+  position: absolute;
+  height: 3rem;
+  width: 3rem;
+  backface-visibility: hidden;
+  display: block;
+}
+.colortoggle3d__colors__block1 {
+  background: #9A6E2F;
+  transform: rotatex(0) translatez(1.5rem);
+}
+.colortoggle3d__colors__block2 {
+  background: #929247;
+  transform: rotatex(90deg) translatez(1.5rem);
+}
+.colortoggle3d__colors__block3 {
+  background: #809BBD;
+  transform: rotatex(180deg) translatez(1.5rem);
+}
+.colortoggle3d__colors__block4 {
+  background: #C6C0C7;
+  transform: rotatex(-90deg) translatez(1.5rem);
+}
+.colortoggle3d__label {
+  position: absolute;
+  width: 10rem;
+  height: 3rem;
+  z-index: 1;
+  transform-style: preserve-3d;
+  transform: translatez(0rem);
+  -moz-transition: transform 0.4s ease-out;
+  -o-transition: transform 0.4s ease-out;
+  -webkit-transition: transform 0.4s ease-out;
+  transition: transform 0.4s ease-out;
+}
+.colortoggle3d__label__front, .colortoggle3d__label__up {
+  position: absolute;
+  line-height: 3rem;
+  width: 10rem;
+  height: 3rem;
+  text-align: center;
+  -backface-visibility: hidden;
+}
+.colortoggle3d__label__front {
+  -moz-transition: color 0.3s ease-out;
+  -o-transition: color 0.3s ease-out;
+  -webkit-transition: color 0.3s ease-out;
+  transition: color 0.3s ease-out;
+  background: #141616;
+  color: #b7b7b7;
+  transform: rotatex(-10deg) translatex(3rem) translatez(1.5rem);
+}
+.colortoggle3d__label__up {
+  background: #2e3333;
+  color: #2e3333;
+  transform: rotatex(80deg) translatex(3rem) translatez(1.5rem);
+}
+
+/****************************** Preloader animation ****************************/
+.gear {
+  display: inline-block;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 1;
+  transform: translatex(-50%) translatey(-50%);
+}
+
+.cog {
+  width: 5rem;
+  height: 5rem;
+  background-size: 100%;
+  animation: rot 7.5s infinite linear;
+  background-image: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48IURPQ1RZUEUgc3ZnIFBVQkxJQyAiLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4iICJodHRwOi8vd3d3LnczLm9yZy9HcmFwaGljcy9TVkcvMS4xL0RURC9zdmcxMS5kdGQiPjxzdmcgdmVyc2lvbj0iMS4xIiBpZD0iTGF5ZXJfMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgeD0iMHB4IiB5PSIwcHgiIHdpZHRoPSIyMDBweCIgaGVpZ2h0PSIyMDBweCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDIwMCAyMDAiIHhtbDpzcGFjZT0icHJlc2VydmUiPjxnPjxwYXRoIGZpbGw9IiNiN2I3YjciIGQ9Ik0xOTYuMDEzLDEwNi45OThsMi45OTgtN2wtMi45OTctNi45OTlsLTE1LjYyNC0yLjc2N2MtMC4yMzUtMS45NTItMC41MzMtMy44ODYtMC45MDUtNS43OTNsMTMuOTkxLTcuNDUybDAuNjg4LTcuNTg1bC01LjAxMy01LjczbC0xNS43MTgsMi4xOTdjLTAuODI3LTEuNzczLTEuNzE2LTMuNTEyLTIuNjY1LTUuMjEzbDExLjAyMS0xMS40MjlsLTEuNjg5LTcuNDI2bC02LjUzOS0zLjkwMWwtMTQuMjk5LDYuOTYyYy0xLjMyNi0xLjQyNS0yLjcwMS0yLjgwMS00LjEyNi00LjEyN2w2Ljk2LTE0LjI5N2wtMy45MDEtNi41NGwtNy40MjQtMS42OWwtMTEuNDMsMTEuMDIxYy0xLjctMC45NDktMy40MzktMS44MzYtNS4yMTMtMi42NjRsMi4xOTctMTUuNzE2bC01LjczMS01LjAxNGwtNy41ODQsMC42ODdsLTcuNDUyLDEzLjk5MmMtMS45MDctMC4zNzItMy44NDEtMC42NjktNS43OTQtMC45MDVsLTIuNzY2LTE1LjYyMmwtNy0yLjk5N2wtNywyLjk5NmwtMi43NjYsMTUuNjIzYy0xLjk1MywwLjIzNi0zLjg4NywwLjUzMy01Ljc5NSwwLjkwNkw3Ni45ODcsNi41MjRsLTcuNTg1LTAuNjg5bC01LjczMSw1LjAxNWwyLjE5OCwxNS43MTdjLTEuNzczLDAuODI4LTMuNTEyLDEuNzE1LTUuMjEzLDIuNjY0TDQ5LjIyOSwxOC4yMWwtNy40MjgsMS42ODhsLTMuOSw2LjU0bDYuOTYxLDE0LjI5OGMtMS40MjQsMS4zMjYtMi44LDIuNzAyLTQuMTI2LDQuMTI2bC0xNC4yOTYtNi45NmwtNi41NDIsMy45MDFsLTEuNjg5LDcuNDI1bDExLjAyMSwxMS40MjljLTAuOTQ5LDEuNzAxLTEuODM2LDMuNDM5LTIuNjYzLDUuMjEzbC0xNS43MTYtMi4xOTdsLTUuMDE3LDUuNzMybDAuNjg4LDcuNTgzbDEzLjk5Myw3LjQ1MmMtMC4zNzMsMS45MDgtMC42NywzLjg0MS0wLjkwNiw1Ljc5M0wzLjk4OCw5M2wtMi45OTksNy4wMDFsMi45OTcsN2wxNS42MjQsMi43NjZjMC4yMzUsMS45NTEsMC41MzIsMy44ODUsMC45MDUsNS43OTNsLTEzLjk5MSw3LjQ1MWwtMC42ODgsNy41ODZsNS4wMTQsNS43M2wxNS43MTgtMi4xOTdjMC44MjcsMS43NzMsMS43MTQsMy41MTIsMi42NjQsNS4yMTNsLTExLjAyMSwxMS40MjhsMS42ODksNy40MjZsNi41MzksMy45MDJsMTQuMjk4LTYuOTYzYzEuMzI1LDEuNDI2LDIuNzAyLDIuODAxLDQuMTI2LDQuMTI3bC02Ljk2LDE0LjI5N2wzLjkwMSw2LjU0MWw3LjQyNSwxLjY4OWwxMS40MjktMTEuMDIxYzEuNzAxLDAuOTUxLDMuNDM5LDEuODM4LDUuMjEzLDIuNjY2bC0yLjE5NywxNS43MTVsNS43MzIsNS4wMTRsNy41ODMtMC42ODhsNy40NTItMTMuOTljMS45MDcsMC4zNzEsMy44NDEsMC42NjgsNS43OTQsMC45MDRsMi43NjYsMTUuNjIxbDcuMDAyLDIuOTk4bDYuOTk4LTIuOTk2bDIuNzY2LTE1LjYyM2MxLjk1My0wLjIzNiwzLjg4Ny0wLjUzMyw1Ljc5NS0wLjkwNmw3LjQ1MSwxMy45OTJsNy41ODYsMC42ODhsNS43My01LjAxNGwtMi4xOTgtMTUuNzE3YzEuNzczLTAuODI4LDMuNTEzLTEuNzE1LDUuMjE0LTIuNjY0bDExLjQyOCwxMS4wMmw3LjQyNi0xLjY4OWwzLjkwMS02LjUzOWwtNi45NjItMTQuMjk5YzEuNDI0LTEuMzI0LDIuODAxLTIuNzAxLDQuMTI3LTQuMTI1bDE0LjI5Nyw2Ljk2MWw2LjU0MS0zLjkwMmwxLjY4OS03LjQyNGwtMTEuMDIxLTExLjQzYzAuOTQ5LTEuNzAxLDEuODM2LTMuNDM5LDIuNjYzLTUuMjEzbDE1LjcxOCwyLjE5N2w1LjAxNC01LjczMmwtMC42ODgtNy41ODJsLTEzLjk5My03LjQ1M2MwLjM3My0xLjkwOCwwLjY3LTMuODQyLDAuOTA1LTUuNzkzTDE5Ni4wMTMsMTA2Ljk5OHogTTEwMCwxNTguODY1Yy0zMi40NiwwLTU4Ljg2NS0yNi40MDYtNTguODY1LTU4Ljg2NmMwLTMyLjQ2LDI2LjQwNS01OC44NjUsNTguODY1LTU4Ljg2NVMxNTguODY1LDY3LjU0LDE1OC44NjUsMTAwQzE1OC44NjUsMTMyLjQ1OSwxMzIuNDYsMTU4Ljg2NSwxMDAsMTU4Ljg2NXoiLz48cGF0aCBmaWxsPSIjYjdiN2I3IiBkPSJNMTAwLDU3LjI4Yy0yMy41NTYsMC00Mi43MTgsMTkuMTY0LTQyLjcxOCw0Mi43MmMwLDIzLjU1NSwxOS4xNjIsNDIuNzE5LDQyLjcxOCw0Mi43MTljMjMuNTU2LDAsNDIuNzE5LTE5LjE2NCw0Mi43MTktNDIuNzE5QzE0Mi43MTksNzYuNDQ0LDEyMy41NTYsNTcuMjgsMTAwLDU3LjI4eiBNMTAwLDExNS44NTVjLTguNzQzLDAtMTUuODU1LTcuMTEzLTE1Ljg1NS0xNS44NTZjMC04Ljc0Myw3LjExMi0xNS44NTUsMTUuODU1LTE1Ljg1NXMxNS44NTUsNy4xMTIsMTUuODU1LDE1Ljg1NUMxMTUuODU1LDEwOC43NDIsMTA4Ljc0MywxMTUuODU1LDEwMCwxMTUuODU1eiIvPjxnPjxwYXRoIGZpbGw9IiNiN2I3YjciIGQ9Ik05MS4wNjYsODQuNTg5bC00My4zMi00My4zMjFsLTYuNDc3LDYuNDc3bDQzLjMyLDQzLjMyQzg2LjE1LDg4LjM4NCw4OC4zODUsODYuMTUsOTEuMDY2LDg0LjU4OXoiLz48cGF0aCBmaWxsPSIjYjdiN2I3IiBkPSJNMTE1LjQxMiw5MS4wNjZsNDMuMzItNDMuMzJsLTYuNDc5LTYuNDc3bC00My4zMiw0My4zMkMxMTEuNjE1LDg2LjE1LDExMy44NSw4OC4zODQsMTE1LjQxMiw5MS4wNjZ6Ii8+PHBhdGggZmlsbD0iI2I3YjdiNyIgZD0iTTEwOC45MzQsMTE1LjQxbDQzLjMyMiw0My4zMmw2LjQ3Ny02LjQ3N2wtNDMuMzIyLTQzLjMyQzExMy44NSwxMTEuNjE1LDExMS42MTUsMTEzLjg1LDEwOC45MzQsMTE1LjQxeiIvPjxwYXRoIGZpbGw9IiNiN2I3YjciIGQ9Ik04NC41OSwxMDguOTM0bC00My4zMjIsNDMuMzJsNi40NzksNi40NzlsNDMuMzItNDMuMzIyQzg4LjM4NSwxMTMuODUsODYuMTUsMTExLjYxNSw4NC41OSwxMDguOTM0eiIvPjwvZz48Zz48Y2lyY2xlIGZpbGw9IiNFNkU2RTUiIGN4PSI1MCIgY3k9IjUwLjgxOCIgcj0iMyIvPjxjaXJjbGUgZmlsbD0iI0U2RTZFNSIgY3g9IjE1MCIgY3k9IjUwLjgxOCIgcj0iMyIvPjwvZz48Zz48Y2lyY2xlIGZpbGw9IiNFNkU2RTUiIGN4PSI1MCIgY3k9IjE1MC44MTgiIHI9IjMiLz48Y2lyY2xlIGZpbGw9IiNFNkU2RTUiIGN4PSIxNTAiIGN5PSIxNTAuODE4IiByPSIzIi8+PC9nPjwvZz48L3N2Zz4=);
+}
+
+@keyframes rot {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+	</style>
+	<body>
+
+		<div id="js-preloader" class="gear"><div class="cog"></div></div>
+
+		<div class="menu">
+
+		  <div class="colortoggle3d colortoggle3d--select1 js-button1" data-index="1" data-values="#ffffff,#000000,#71B09F,#ff8a2b">
+		    <div class="colortoggle3d__label">
+		      <div class="colortoggle3d__label__front">Frame</div>
+		      <div class="colortoggle3d__label__up"></div>
+		    </div>
+		    <div class="colortoggle3d__colors">
+		      <div class="colortoggle3d__colors__block1"></div>
+		      <div class="colortoggle3d__colors__block2"></div>
+		      <div class="colortoggle3d__colors__block3"></div>
+		      <div class="colortoggle3d__colors__block4"></div>
+		    </div>
+		  </div>
+
+		  <div class="colortoggle3d colortoggle3d--select1 js-button2" data-index="1" data-values="#936020,#ffffff,#000000,#e00dab">
+		    <div class="colortoggle3d__label">
+		      <div class="colortoggle3d__label__front">Saddle</div>
+		      <div class="colortoggle3d__label__up"></div>
+		    </div>
+		    <div class="colortoggle3d__colors">
+		      <div class="colortoggle3d__colors__block1"></div>
+		      <div class="colortoggle3d__colors__block2"></div>
+		      <div class="colortoggle3d__colors__block3"></div>
+		      <div class="colortoggle3d__colors__block4"></div>
+		    </div>
+		  </div>
+
+		  <div class="colortoggle3d colortoggle3d--select1 js-button3" data-index="1" data-values="#000000,#ffffff,#936020,#e00dab">
+		    <div class="colortoggle3d__label">
+		      <div class="colortoggle3d__label__front">Tires</div>
+		      <div class="colortoggle3d__label__up"></div>
+		    </div>
+		    <div class="colortoggle3d__colors">
+		      <div class="colortoggle3d__colors__block1"></div>
+		      <div class="colortoggle3d__colors__block2"></div>
+		      <div class="colortoggle3d__colors__block3"></div>
+		      <div class="colortoggle3d__colors__block4"></div>
+		    </div>
+		  </div>
+
+
+		  <!--
+		  <a class="menu__item menu__item--white js-toggle-button" data-groupname="frame">Frame</a>
+		  <a class="menu__item menu__item--brown js-toggle-button" data-groupname="saddle">Saddle & handlebars</a>
+		  <a class="menu__item menu__item--black js-toggle-button" data-groupname="tires">Tires</a>
+		  -->
+		</div>
+
+	</body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "name": "3d-webvr-bikebuilder",
+  "version": "0.0.0",
+  "homepage": "https://github.com/jaamo/3d-webvr-bikebuilder",
+  "authors": [
+    "Jaakko Alajoki <jaakko@evermade.fi>"
+  ],
+  "description": "3D bike builder.",
+  "main": "index.html",
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "threejs": "*"
+  }
+}
