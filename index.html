@@ -19,6 +19,8 @@
 		<script src="bower_components/threejs/examples/js/shaders/FXAAShader.js"></script>
 		<script src="bower_components/threejs/examples/js/controls/OrbitControls.js"></script>
 
+		<script src="js/objects/Bike.js"></script>
+		<script src="js/objects/SomeWall.js"></script>
 		<script src="js/BikeBuilder.js"></script>
 
 		<title>3D Bike Builder</title>
@@ -43,137 +45,6 @@ canvas {
   display: block;
 }
 
-/****************************** Menu *************************************/
-/* Menu */
-.menu {
-  position: fixed;
-  ddisplay: none;
-  bottom: 2rem;
-  left: 0;
-  right: 0;
-  z-index: 100;
-  text-align: center;
-}
-.menu__item {
-  background: black;
-  color: white;
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 3rem solid black;
-  line-height: 3rem;
-  margin-left: 0.5rem;
-}
-.menu__item--white {
-  border-color: white;
-}
-.menu__item--black {
-  border-color: #000000;
-}
-.menu__item--brown {
-  border-color: #936020;
-}
-
-/****************************** Menu 3d *************************************/
-/* Simple transition */
-.colortoggle3d {
-  display: inline-block;
-  margin: 0 2rem;
-  position: relative;
-  perspective: 500px;
-  height: 3rem;
-  width: 13rem;
-  -moz-transition: transform 0.2s ease-out;
-  -o-transition: transform 0.2s ease-out;
-  -webkit-transition: transform 0.2s ease-out;
-  transition: transform 0.2s ease-out;
-}
-.colortoggle3d:hover {
-  transform: translatey(-0.2rem);
-}
-.colortoggle3d:hover .colortoggle3d__label__front {
-  color: #ffffff;
-}
-.colortoggle3d--select1 .colortoggle3d__colors {
-  transform: rotatex(-10deg);
-}
-.colortoggle3d--select2 .colortoggle3d__colors {
-  transform: rotatex(-100deg);
-}
-.colortoggle3d--select3 .colortoggle3d__colors {
-  transform: rotatex(-190deg);
-}
-.colortoggle3d--select4 .colortoggle3d__colors {
-  transform: rotatex(-280deg);
-}
-.colortoggle3d__colors {
-  -moz-transition: transform 0.4s ease-out;
-  -o-transition: transform 0.4s ease-out;
-  -webkit-transition: transform 0.4s ease-out;
-  transition: transform 0.4s ease-out;
-  position: absolute;
-  height: 100%;
-  width: 100%;
-  transform-style: preserve-3d;
-  transform: rotatex(-10deg);
-  z-index: 2;
-}
-.colortoggle3d__colors__block1, .colortoggle3d__colors__block2, .colortoggle3d__colors__block3, .colortoggle3d__colors__block4 {
-  position: absolute;
-  height: 3rem;
-  width: 3rem;
-  backface-visibility: hidden;
-  display: block;
-}
-.colortoggle3d__colors__block1 {
-  background: #9A6E2F;
-  transform: rotatex(0) translatez(1.5rem);
-}
-.colortoggle3d__colors__block2 {
-  background: #929247;
-  transform: rotatex(90deg) translatez(1.5rem);
-}
-.colortoggle3d__colors__block3 {
-  background: #809BBD;
-  transform: rotatex(180deg) translatez(1.5rem);
-}
-.colortoggle3d__colors__block4 {
-  background: #C6C0C7;
-  transform: rotatex(-90deg) translatez(1.5rem);
-}
-.colortoggle3d__label {
-  position: absolute;
-  width: 10rem;
-  height: 3rem;
-  z-index: 1;
-  transform-style: preserve-3d;
-  transform: translatez(0rem);
-  -moz-transition: transform 0.4s ease-out;
-  -o-transition: transform 0.4s ease-out;
-  -webkit-transition: transform 0.4s ease-out;
-  transition: transform 0.4s ease-out;
-}
-.colortoggle3d__label__front, .colortoggle3d__label__up {
-  position: absolute;
-  line-height: 3rem;
-  width: 10rem;
-  height: 3rem;
-  text-align: center;
-  -backface-visibility: hidden;
-}
-.colortoggle3d__label__front {
-  -moz-transition: color 0.3s ease-out;
-  -o-transition: color 0.3s ease-out;
-  -webkit-transition: color 0.3s ease-out;
-  transition: color 0.3s ease-out;
-  background: #141616;
-  color: #b7b7b7;
-  transform: rotatex(-10deg) translatex(3rem) translatez(1.5rem);
-}
-.colortoggle3d__label__up {
-  background: #2e3333;
-  color: #2e3333;
-  transform: rotatex(80deg) translatex(3rem) translatez(1.5rem);
-}
 
 /****************************** Preloader animation ****************************/
 .gear {
@@ -203,55 +74,6 @@ canvas {
 	<body>
 
 		<div id="js-preloader" class="gear"><div class="cog"></div></div>
-
-		<div class="menu">
-
-		  <div class="colortoggle3d colortoggle3d--select1 js-button1" data-index="1" data-values="#ffffff,#000000,#71B09F,#ff8a2b">
-		    <div class="colortoggle3d__label">
-		      <div class="colortoggle3d__label__front">Frame</div>
-		      <div class="colortoggle3d__label__up"></div>
-		    </div>
-		    <div class="colortoggle3d__colors">
-		      <div class="colortoggle3d__colors__block1"></div>
-		      <div class="colortoggle3d__colors__block2"></div>
-		      <div class="colortoggle3d__colors__block3"></div>
-		      <div class="colortoggle3d__colors__block4"></div>
-		    </div>
-		  </div>
-
-		  <div class="colortoggle3d colortoggle3d--select1 js-button2" data-index="1" data-values="#936020,#ffffff,#000000,#e00dab">
-		    <div class="colortoggle3d__label">
-		      <div class="colortoggle3d__label__front">Saddle</div>
-		      <div class="colortoggle3d__label__up"></div>
-		    </div>
-		    <div class="colortoggle3d__colors">
-		      <div class="colortoggle3d__colors__block1"></div>
-		      <div class="colortoggle3d__colors__block2"></div>
-		      <div class="colortoggle3d__colors__block3"></div>
-		      <div class="colortoggle3d__colors__block4"></div>
-		    </div>
-		  </div>
-
-		  <div class="colortoggle3d colortoggle3d--select1 js-button3" data-index="1" data-values="#000000,#ffffff,#936020,#e00dab">
-		    <div class="colortoggle3d__label">
-		      <div class="colortoggle3d__label__front">Tires</div>
-		      <div class="colortoggle3d__label__up"></div>
-		    </div>
-		    <div class="colortoggle3d__colors">
-		      <div class="colortoggle3d__colors__block1"></div>
-		      <div class="colortoggle3d__colors__block2"></div>
-		      <div class="colortoggle3d__colors__block3"></div>
-		      <div class="colortoggle3d__colors__block4"></div>
-		    </div>
-		  </div>
-
-
-		  <!--
-		  <a class="menu__item menu__item--white js-toggle-button" data-groupname="frame">Frame</a>
-		  <a class="menu__item menu__item--brown js-toggle-button" data-groupname="saddle">Saddle & handlebars</a>
-		  <a class="menu__item menu__item--black js-toggle-button" data-groupname="tires">Tires</a>
-		  -->
-		</div>
 
 	</body>
 </html>
