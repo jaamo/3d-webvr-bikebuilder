@@ -10,13 +10,18 @@ THREE.ImageLoader.prototype.crossOrigin = "Anonymous";
 var BikeBuilder = new Function();
 
 
-/**
- */
+
+/* Essential 3D scene objects. */
 BikeBuilder.prototype.scene = {};
 BikeBuilder.prototype.camera = {};
 BikeBuilder.prototype.renderer = {};
 BikeBuilder.prototype.composer = {};
 BikeBuilder.prototype.clock = {};
+
+/* WebVR controls and effect. */
+BikeBuilder.prototype.vrControls = {};
+BikeBuilder.prototype.vrEffect = {};
+BikeBuilder.prototype.vrEnabled = false;
 
 /* Dimensions */
 BikeBuilder.prototype.width = window.innerWidth;
@@ -38,20 +43,23 @@ BikeBuilder.prototype.colors = {
 
 
 /**
- * Init scene and start animation.
+ * Init scene.
  */
 BikeBuilder.prototype.init = function init() {
 
 	this.scene = new THREE.Scene();
 	this.initCamera();
 	this.initRenderer();
+	this.initVR();
 	this.initLight();
 	this.initFloor();
 	this.initShapes();
 	this.initClock();
+	this.initControls();
 	this.render();
 
 };
+
 
 
 /**
@@ -91,8 +99,10 @@ BikeBuilder.prototype.initClock = function() {
 	this.clock = new THREE.Clock(true);
 }
 
+
+
 /**
- * Renderer.
+ * Init renderer and shaders.
  */
 BikeBuilder.prototype.initRenderer = function() {
 
@@ -133,6 +143,23 @@ BikeBuilder.prototype.initRenderer = function() {
 };
 
 
+
+/**
+ * Init webvr.
+ */
+BikeBuilder.prototype.initVR = function() {
+
+	// Init VR controls.
+	this.vrControls = new THREE.VRControls(this.camera);
+
+	// Init VR effect.
+	this.vrEffect = new THREE.VREffect(this.renderer);
+	this.vrEffect.setSize(this.width, this.height);
+
+}
+
+
+
 /**
  * Lights.
  */
@@ -163,6 +190,7 @@ BikeBuilder.prototype.initLight = function() {
 };
 
 
+
 /**
  * Floor.
  */
@@ -185,6 +213,7 @@ BikeBuilder.prototype.initFloor = function() {
 	this.scene.add(floor);
 
 };
+
 
 
 /**
@@ -210,6 +239,60 @@ BikeBuilder.prototype.initShapes = function() {
 
 
 };
+
+
+
+/**
+ * Init controls.
+ */
+BikeBuilder.prototype.initControls = function() {
+
+	var self = this;
+
+	// Toggle VR if f-button is pressed.
+	window.addEventListener('keydown', function(event) {
+		if (event.keyCode == 70) { // f
+			self.toggleVR();
+		}
+	}, true);
+
+}
+
+
+
+/**
+ * Enter virtual reality mode.
+ */
+BikeBuilder.prototype.enterVR = function() {
+	console.log("Enter VR");
+	this.vrEffect.setFullScreen(true);
+	this.vrEnabled = true;
+}
+
+
+
+/**
+ * Exit VR mode.
+ */
+BikeBuilder.prototype.exitVR = function() {
+  console.log("Exit VR.");
+  this.vrEffect.setFullScreen(false);
+  this.vrEnabled = false;
+};
+
+
+
+
+/**
+ * Toggle VR on and off.
+ */
+BikeBuilder.prototype.toggleVR = function() {
+	if (!this.vrEnabled) {
+		this.enterVR();
+	} else {
+		this.exitVR();
+	}
+}
 
 
 
@@ -267,9 +350,11 @@ BikeBuilder.prototype.render = function() {
 	//console.log(this.camera.position.x + ", " + this.camera.position.y + ", " + this.camera.position.z)
 
 	// Render scene.
-	this.controls.update();
+	// this.controls.update();
+	this.vrControls.update();
 	this.renderer.clear();
-	this.composer.render();
+	//this.composer.render();
+	this.vrEffect.render(this.scene, this.camera);
 
 	// Request new frame.
 	requestAnimationFrame(this.render.bind(this));
