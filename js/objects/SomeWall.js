@@ -49,6 +49,7 @@ SomeWall.prototype.init = function(scene, successCallback) {
 		for (var i = 0; i < max; i++) {
 
 			var progress = i / max;
+            var randomDistance = 1000 + 2000 * Math.random();
 
 			var geometry = new THREE.PlaneGeometry(boxSize, boxSize, 1);
 			var material = new THREE.MeshPhongMaterial({
@@ -57,8 +58,8 @@ SomeWall.prototype.init = function(scene, successCallback) {
 			});
 			var plane = new THREE.Mesh(geometry, material);
 			//plane.parent = cube;
-			plane.position.x = distance * Math.sin(2 * Math.PI * progress);
-			plane.position.z = distance * Math.cos(2 * Math.PI * progress);
+			plane.position.x = randomDistance * Math.sin(2 * Math.PI * progress);
+			plane.position.z = randomDistance * Math.cos(2 * Math.PI * progress);
 			plane.position.y = row * (boxSize + rowSpacing) - rowOffset;
 			plane.rotation.y = 2 * Math.PI * progress + Math.PI;
 

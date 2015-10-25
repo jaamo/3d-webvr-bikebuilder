@@ -64,7 +64,7 @@ BikeBuilder.prototype.initCamera = function() {
 	//this.camera.position.z = 500;
 	//this.camera.position.x = 2000;
 
-	this.camera = new THREE.PerspectiveCamera( 45, this.width / this.height, 1, 2000 );
+	this.camera = new THREE.PerspectiveCamera( 45, this.width / this.height, 1, 5000 );
 	this.camera.position.y = 228;
 	this.camera.position.z = 496;
 	this.camera.position.x = 261;
@@ -138,22 +138,27 @@ BikeBuilder.prototype.initRenderer = function() {
  */
 BikeBuilder.prototype.initLight = function() {
 
+    // Shadow.
 	var shadowlight = new THREE.DirectionalLight( 0xffffff, 1.8 );
 	shadowlight.position.set( 0, 50, 0 );
 	shadowlight.castShadow = true;
 	shadowlight.shadowDarkness = 0.1;
-	//shadowlight.shadowBias = 0.0001;
 	shadowlight.shadowMapWidth = 1024; // default is 512
 	shadowlight.shadowMapHeight = 1024; // default is 512
 	this.scene.add(shadowlight);
 
-	var light = new THREE.DirectionalLight( 0xffffff, 1.2 );
-	light.position.set( 60, 100, 20 );
+	// Main light.
+	var light = new THREE.PointLight(0xffffff, 1.2, 3000, 1)
+	light.position.set( 0, 400, 0 );
 	this.scene.add(light);
 
-	var backLight = new THREE.DirectionalLight( 0xffffff, 0.8 );
-	backLight.position.set( -40, 100, 20 );
-	this.scene.add(backLight);
+	var light2 = new THREE.PointLight(0xffffff, 1.2, 500, 1)
+	light2.position.set( 0, 100, 200 );
+	this.scene.add(light2);
+
+	var light3 = new THREE.PointLight(0xffffff, 1.2, 500, 1)
+	light3.position.set( 0, 100, -200 );
+	this.scene.add(light3);
 
 };
 
