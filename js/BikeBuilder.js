@@ -48,9 +48,9 @@ BikeBuilder.prototype.colors = {
 BikeBuilder.prototype.init = function init() {
 
 	this.scene = new THREE.Scene();
-	this.initCamera();
 	this.initRenderer();
-	this.initVR();
+    this.initCamera();
+    this.initVR();
 	this.initLight();
 	this.initFloor();
 	this.initShapes();
@@ -67,19 +67,13 @@ BikeBuilder.prototype.init = function init() {
  */
 BikeBuilder.prototype.initCamera = function() {
 
-	//this.camera = new THREE.OrthographicCamera( this.width / - 2, this.width / 2, this.height / 2, this.height / - 2, 1, 10000 );
-	//this.camera.position.y = 500;
-	//this.camera.position.z = 500;
-	//this.camera.position.x = 2000;
-
-	this.camera = new THREE.PerspectiveCamera( 45, this.width / this.height, 1, 5000 );
+	this.camera = new THREE.PerspectiveCamera( 75, this.width / this.height, 0.3, 10000 );
 	this.camera.position.y = 228;
 	this.camera.position.z = 496;
 	this.camera.position.x = 261;
-	this.camera.updateProjectionMatrix();
-	this.camera.lookAt(this.scene.position);
 
 	// Add orbital controls.
+	/*
 	this.controls = new THREE.OrbitControls( this.camera, this.renderer.domElement );
 	//controls.addEventListener( 'change', render ); // add this only if there is no animation loop (requestAnimationFrame)
 	this.controls.enableDamping = true;
@@ -88,7 +82,7 @@ BikeBuilder.prototype.initCamera = function() {
 	this.controls.minPolarAngle = 0;
 	this.controls.maxPolarAngle = Math.PI * 0.55;
 	//  this.controls.minAzimuthAngle = Math.PI;
-
+    */
 };
 
 
@@ -106,8 +100,11 @@ BikeBuilder.prototype.initClock = function() {
  */
 BikeBuilder.prototype.initRenderer = function() {
 
-	this.renderer = new THREE.WebGLRenderer({antialias: false});
-	this.renderer.setSize( this.width, this.height );
+    var self = this;
+
+	this.renderer = new THREE.WebGLRenderer({antialias: true});
+    //this.renderer.setSize( this.width, this.height );
+    this.renderer.setPixelRatio(window.devicePixelRatio);
 
 	// Background color.
 	this.renderer.setClearColor( 0x000000 , 1 );
@@ -118,8 +115,12 @@ BikeBuilder.prototype.initRenderer = function() {
 
 	// Set autoclear to false. We're doing this manually.
 	// This is required for shaders to work.
-	this.renderer.autoClear = false;
+	// this.renderer.autoClear = false;
 	document.body.appendChild(this.renderer.domElement);
+
+    return;
+
+    // Skip shaders for now.
 
 	// Create effect composer to mix shaders.
 	this.composer = new THREE.EffectComposer( this.renderer );
@@ -139,6 +140,12 @@ BikeBuilder.prototype.initRenderer = function() {
 	var effectCopy = new THREE.ShaderPass( THREE.CopyShader );
 	effectCopy.renderToScreen = true; // Last pass needs to render to screen
 	this.composer.addPass( effectCopy );
+
+    // Handle window resize.
+    window.addEventListener('resize', function() {
+        self.onWindowResize();
+    }, false);
+
 
 };
 
@@ -338,6 +345,20 @@ BikeBuilder.prototype.setMaterial = function(groupName, color) {
 
 
 /**
+ * Handle window resize.
+ */
+BikeBuilder.prototype.onWindowResize = function() {
+    console.log("Resize window.");
+    this.camera.aspect = window.innerWidth / window.innerHeight;
+    this.camera.updateProjectionMatrix();
+    this.vrEffect.setSize(window.innerWidth, window.innerHeight);
+}
+
+
+
+
+
+/**
  * Render method.
  */
 BikeBuilder.prototype.render = function() {
@@ -346,14 +367,23 @@ BikeBuilder.prototype.render = function() {
 	//if (typeof(this.dae) != "undefined") {
 	//this.dae.rotation.y = this.clock.getElapsedTime() / 4;
 	//}
-
 	//console.log(this.camera.position.x + ", " + this.camera.position.y + ", " + this.camera.position.z)
 
 	// Render scene.
-	// this.controls.update();
+	//this.controls.update();
 	this.vrControls.update();
-	this.renderer.clear();
+	//this.camera.rotation.y += 1;
+	//this.renderer.clear();
+    //this.camera.updateProjectionMatrix();
+    //console.log(this.camera.rotation.y);
 	//this.composer.render();
+
+    this.camera.position.y = 228/2;
+	this.camera.position.z = 496/2;
+	this.camera.position.x = 261/2;
+	this.camera.updateMatrixWorld();
+
+    //this.camera.updateProjectionMatrix();
 	this.vrEffect.render(this.scene, this.camera);
 
 	// Request new frame.
