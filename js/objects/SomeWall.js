@@ -136,7 +136,7 @@ SomeWall.prototype.animate = function(delta, elapsed) {
 		var photo = this.photos[i];
 		photo.position.y -= 100 * delta;
 		if (photo.position.y < -this.rowOffset) {
-			photo.position.y = (1 + this.maxRows) * (this.boxSize + this.rowSpacing) - this.rowOffset;
+			photo.position.y = (1 + this.maxRows) * (this.boxSize + this.rowSpacing) - this.rowOffset; // <- there is a bug!!
 		}
 	}
 
@@ -144,7 +144,6 @@ SomeWall.prototype.animate = function(delta, elapsed) {
 	if (delay > 5) {
 		for (var i = 0; i < 40; i++) {
 			var rand = Math.round((this.photos.length - 1) * Math.random());
-			console.log(rand);
 			this.applyTween(this.photos[rand]);
 
 		}

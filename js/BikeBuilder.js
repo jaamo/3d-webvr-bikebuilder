@@ -103,6 +103,7 @@ BikeBuilder.prototype.initRenderer = function() {
 	this.renderer = new THREE.WebGLRenderer({antialias: true});
 
 	if (!this.vrControlsEnabled) {
+		this.renderer.autoClear = false;
 		this.renderer.setSize( this.width, this.height );
 	}
 
@@ -250,6 +251,9 @@ BikeBuilder.prototype.initShapes = function() {
 	this.someWall = new SomeWall();
 	this.someWall.init(this.scene);
 
+	// Hub.
+	this.hud = new HUD();
+	this.hud.init(this.scene, this.camera);
 
 };
 
@@ -365,8 +369,6 @@ BikeBuilder.prototype.onWindowResize = function() {
 
 
 
-
-
 /**
  * Render method.
  */
@@ -419,7 +421,9 @@ BikeBuilder.prototype.render = function() {
 
 		// Render scene.
 		this.controls.update();
+		this.camera.updateMatrixWorld();
 		this.renderer.render(this.scene, this.camera);
+		this.renderer.render(this.hud.scene, this.hud.camera);
 
 
 	}
