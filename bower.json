@@ -17,6 +17,7 @@
     "tests"
   ],
   "dependencies": {
-    "threejs": "*"
+    "threejs": "*",
+    "tweenjs": "~16.3.1"
   }
 }

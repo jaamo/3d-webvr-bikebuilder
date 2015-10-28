@@ -18,6 +18,12 @@ BikeBuilder.prototype.renderer = {};
 BikeBuilder.prototype.composer = {};
 BikeBuilder.prototype.clock = {};
 
+/* Control mode. */
+BikeBuilder.prototype.vrControlsEnabled = false;
+
+/* Gamepad input with keyboard fallback. */
+BikeBuilder.prototype.gamepadControls = {};
+
 /* WebVR controls and effect. */
 BikeBuilder.prototype.vrControls = {};
 BikeBuilder.prototype.vrEffect = {};
@@ -27,18 +33,7 @@ BikeBuilder.prototype.vrEnabled = false;
 BikeBuilder.prototype.width = window.innerWidth;
 BikeBuilder.prototype.height = window.innerHeight;
 
-/* Frame color options */
-BikeBuilder.prototype.colors = {
-  frame: {
-	objects: ["Frame", "Fork", "RearTriangle"]
-  },
-  saddle: {
-	objects: ["Tape", "Seat"]
-  },
-  tires: {
-	objects: ["FrontWheel", "RearWheel"]
-  }
-};
+
 
 
 
@@ -73,16 +68,19 @@ BikeBuilder.prototype.initCamera = function() {
 	this.camera.position.x = 261;
 
 	// Add orbital controls.
-	/*
-	this.controls = new THREE.OrbitControls( this.camera, this.renderer.domElement );
-	//controls.addEventListener( 'change', render ); // add this only if there is no animation loop (requestAnimationFrame)
-	this.controls.enableDamping = true;
-	this.controls.dampingFactor = 0.25;
-	this.controls.enableZoom = false;
-	this.controls.minPolarAngle = 0;
-	this.controls.maxPolarAngle = Math.PI * 0.55;
-	//  this.controls.minAzimuthAngle = Math.PI;
-    */
+	if (!this.vrControlsEnabled) {
+
+		this.controls = new THREE.OrbitControls( this.camera, this.renderer.domElement );
+		//controls.addEventListener( 'change', render ); // add this only if there is no animation loop (requestAnimationFrame)
+		this.controls.enableDamping = true;
+		this.controls.dampingFactor = 0.25;
+		this.controls.enableZoom = false;
+		this.controls.minPolarAngle = 0;
+		this.controls.maxPolarAngle = Math.PI * 0.55;
+		//  this.controls.minAzimuthAngle = Math.PI;
+
+	}
+
 };
 
 
@@ -103,7 +101,11 @@ BikeBuilder.prototype.initRenderer = function() {
     var self = this;
 
 	this.renderer = new THREE.WebGLRenderer({antialias: true});
-    //this.renderer.setSize( this.width, this.height );
+
+	if (!this.vrControlsEnabled) {
+		this.renderer.setSize( this.width, this.height );
+	}
+
     this.renderer.setPixelRatio(window.devicePixelRatio);
 
 	// Background color.
@@ -156,12 +158,18 @@ BikeBuilder.prototype.initRenderer = function() {
  */
 BikeBuilder.prototype.initVR = function() {
 
-	// Init VR controls.
-	this.vrControls = new THREE.VRControls(this.camera);
 
-	// Init VR effect.
-	this.vrEffect = new THREE.VREffect(this.renderer);
-	this.vrEffect.setSize(this.width, this.height);
+	if (this.vrControlsEnabled) {
+
+		// Init VR controls.
+		this.vrControls = new THREE.VRControls(this.camera);
+
+		// Init VR effect.
+		this.vrEffect = new THREE.VREffect(this.renderer);
+		this.vrEffect.setSize(this.width, this.height);
+
+	}
+
 
 }
 
@@ -234,9 +242,7 @@ BikeBuilder.prototype.initShapes = function() {
 	this.bike = new Bike()
 	this.bike.init(this.scene, function() {
 
-		// Hide preloader.
-		$("#js-preloader").hide();
-		$(".menu").show();
+		console.log("Model loaded.");
 
 	});
 
@@ -262,6 +268,9 @@ BikeBuilder.prototype.initControls = function() {
 			self.toggleVR();
 		}
 	}, true);
+
+	this.gamepadControls = new GamepadControls();
+	this.gamepadControls.init();
 
 }
 
@@ -363,28 +372,57 @@ BikeBuilder.prototype.onWindowResize = function() {
  */
 BikeBuilder.prototype.render = function() {
 
+	var delta = this.clock.getDelta();
+	var elapsed = this.clock.getElapsedTime();
+
 	// Autorotate camera.
 	//if (typeof(this.dae) != "undefined") {
 	//this.dae.rotation.y = this.clock.getElapsedTime() / 4;
 	//}
 	//console.log(this.camera.position.x + ", " + this.camera.position.y + ", " + this.camera.position.z)
 
-	// Render scene.
-	//this.controls.update();
-	this.vrControls.update();
-	//this.camera.rotation.y += 1;
-	//this.renderer.clear();
-    //this.camera.updateProjectionMatrix();
-    //console.log(this.camera.rotation.y);
-	//this.composer.render();
+	if (this.gamepadControls.active("axis1left") > 0) {
+		this.bike.obj.rotation.y += (Math.PI / 2) * delta * this.gamepadControls.active("axis1left");
+	}
+	if (this.gamepadControls.active("axis1right") > 0) {
+		this.bike.obj.rotation.y -= (Math.PI / 2) * delta * this.gamepadControls.active("axis1right");
+	}
 
-    this.camera.position.y = 228/2;
-	this.camera.position.z = 496/2;
-	this.camera.position.x = 261/2;
-	this.camera.updateMatrixWorld();
+	// Run tweens.
+	TWEEN.update();
 
-    //this.camera.updateProjectionMatrix();
-	this.vrEffect.render(this.scene, this.camera);
+	// Animate wall.
+	this.someWall.animate(delta, elapsed);
+
+	if (this.vrControlsEnabled) {
+
+		// Render scene.
+		//this.controls.update();
+		this.vrControls.update();
+		//this.camera.rotation.y += 1;
+		//this.renderer.clear();
+	    //this.camera.updateProjectionMatrix();
+	    //console.log(this.camera.rotation.y);
+		//this.composer.render();
+
+	    this.camera.position.y = 228/2;
+		this.camera.position.z = 496/2;
+		this.camera.position.x = 261/2;
+		this.camera.updateMatrixWorld();
+
+	    //this.camera.updateProjectionMatrix();
+		this.vrEffect.render(this.scene, this.camera);
+
+
+
+	} else {
+
+		// Render scene.
+		this.controls.update();
+		this.renderer.render(this.scene, this.camera);
+
+
+	}
 
 	// Request new frame.
 	requestAnimationFrame(this.render.bind(this));

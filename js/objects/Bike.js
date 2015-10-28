@@ -3,7 +3,7 @@
  */
 var Bike = new Function();
 
-Bike.prototype.obj = {};
+Bike.prototype.obj = false;
 
 Bike.prototype.init = function(scene, successCallback) {
 
