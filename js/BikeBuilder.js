@@ -103,7 +103,7 @@ BikeBuilder.prototype.initRenderer = function() {
 	this.renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
 
 	if (!this.vrControlsEnabled) {
-		//this.renderer.autoClear = false;
+		this.renderer.autoClear = false;
 		this.renderer.setSize( this.width, this.height );
 	}
 
@@ -240,18 +240,18 @@ BikeBuilder.prototype.initShapes = function() {
 	var self = this;
 
 	// Initialize bike.
-	this.bike = new Bike()
-	this.bike.init(this.scene, function() {
-
-		console.log("Model loaded.");
-
-	});
+	// this.bike = new Bike()
+	// this.bike.init(this.scene, function() {
+	//
+	// 	console.log("Model loaded.");
+	//
+	// });
 
 	// Init photowall.
-	this.someWall = new SomeWall();
-	this.someWall.init(this.scene);
+	// this.someWall = new SomeWall();
+	// this.someWall.init(this.scene);
 
-	// Hub.
+	// // Hub.
 	this.hud = new HUD();
 	this.hud.init(this.scene, this.camera);
 
@@ -397,7 +397,7 @@ BikeBuilder.prototype.render = function() {
 	TWEEN.update();
 
 	// Animate wall.
-	this.someWall.animate(delta, elapsed);
+	// this.someWall.animate(delta, elapsed);
 
 	if (this.vrControlsEnabled) {
 
@@ -425,8 +425,13 @@ BikeBuilder.prototype.render = function() {
 		// Render scene.
 		this.controls.update();
 		this.camera.updateMatrixWorld();
+		this.camera.updateProjectionMatrix();
+
+		//this.hud.animate(this.scene, this.camera);
+
+		this.renderer.clear();
 		this.renderer.render(this.scene, this.camera);
-		//this.renderer.render(this.hud.scene, this.hud.camera);
+		this.renderer.render(this.hud.scene, this.hud.camera);
 
 
 	}

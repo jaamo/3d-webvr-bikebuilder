@@ -52,13 +52,13 @@ Bike.prototype.init = function(scene, successCallback) {
 
 		// Get materials for given objects.
 		// for (var i in group.objects) {
-		self.obj.getObjectByName("Frame").children[0].material.materials[0].color = new THREE.Color(0xff0000);
-		self.obj.getObjectByName("Frame").children[0].material.materials[1].color = new THREE.Color(0xff0000);
-
-		self.obj.getObjectByName("Saddle").children[0].material.color = new THREE.Color(0x00ff00);
-		self.obj.getObjectByName("Saddle").children[0].material.color = new THREE.Color(0x00ff00);
-
-		self.obj.getObjectByName("RearWheel").children[0].material.materials[2].color = new THREE.Color(0x0000ff);
+		// self.obj.getObjectByName("Frame").children[0].material.materials[0].color = new THREE.Color(0xff0000);
+		// self.obj.getObjectByName("Frame").children[0].material.materials[1].color = new THREE.Color(0xff0000);
+		//
+		// self.obj.getObjectByName("Saddle").children[0].material.color = new THREE.Color(0x00ff00);
+		// self.obj.getObjectByName("Saddle").children[0].material.color = new THREE.Color(0x00ff00);
+		//
+		// self.obj.getObjectByName("RearWheel").children[0].material.materials[2].color = new THREE.Color(0x0000ff);
 
 		// }
 
