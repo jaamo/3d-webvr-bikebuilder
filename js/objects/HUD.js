@@ -19,113 +19,146 @@ HUD.prototype.currentItem = 0;
 
 HUD.prototype.items = [
   {
-    "label": "Frame",
-    "selected": 0,
-    "opacity": 1,
-    "options": [
-      { key: "0xff0000", "label": "Red" },
-      { key: "0x0000ff", "label": "Blue" },
-      { key: "0x00ff00", "label": "Green" }
-    ]
+	"label": "Frame",
+	"key": "frame",
+	"selected": 0,
+	"opacity": 1,
+	"options": [
+		{ key: 0xe24814, "label": "Red" },
+	  { key: 0x545454, "label": "Grey" },
+	  { key: 0x1c1c1c, "label": "Black" },
+	  { key: 0xeaeaea, "label": "White" },
+	  { key: 0x3b79d6, "label": "Blue" },
+	  { key: 0xffe62b, "label": "Yellow" },
+	  { key: 0xffb55b, "label": "Orange" }
+	]
   },
   {
-    "label": "Saddle",
-    "selected": 0,
-    "opacity": 0,
-    "options": [
-      { key: "0xff0000", "label": "Red" },
-      { key: "0x0000ff", "label": "Blue" },
-      { key: "0x00ff00", "label": "Green" }
-    ]
+	"label": "Saddle",
+	"key": "saddle",
+	"selected": 0,
+	"opacity": 0,
+	"options": [
+	  { key: 0x545454, "label": "Grey" },
+	  { key: 0x1c1c1c, "label": "Black" },
+  	  { key: 0xeaeaea, "label": "White" },
+  	  { key: 0xe24814, "label": "Red" },
+  	  { key: 0x3b79d6, "label": "Blue" },
+  	  { key: 0xffe62b, "label": "Yellow" },
+  	  { key: 0xffb55b, "label": "Orange" }
+	]
   },
   {
-    "label": "Tires",
-    "selected": 0,
-    "opacity": 0,
-    "options": [
-      { key: "0xff0000", "label": "Red" },
-      { key: "0x0000ff", "label": "Blue" },
-      { key: "0x00ff00", "label": "Green" }
-    ]
-  },
-  {
-    "label": "Banana",
-    "selected": 0,
-    "opacity": 0,
-    "options": [
-      { key: "0xff0000", "label": "Red" },
-      { key: "0x0000ff", "label": "Blue" },
-      { key: "0x00ff00", "label": "Green" }
-    ]
-  },
-  {
-    "label": "Chicken",
-    "selected": 0,
-    "opacity": 0,
-    "options": [
-      { key: "0xff0000", "label": "Red" },
-      { key: "0x0000ff", "label": "Blue" },
-      { key: "0x00ff00", "label": "Green" }
-    ]
-  },
+	"label": "Tires",
+	"key": "tires",
+	"selected": 0,
+	"opacity": 0,
+	"options": [
+	  { key: 0x545454, "label": "Grey" },
+	  { key: 0x1c1c1c, "label": "Black" },
+  	  { key: 0xeaeaea, "label": "White" },
+  	  { key: 0xe24814, "label": "Red" },
+  	  { key: 0x3b79d6, "label": "Blue" },
+  	  { key: 0xffe62b, "label": "Yellow" },
+  	  { key: 0xffb55b, "label": "Orange" }
+	]
+  }
 ];
-
-
 
 HUD.prototype.init = function(scene, camera) {
 
-	// Ok, now we have the cube. Next we'll create the hud. For that we'll
-    // need a separate scene which we'll render on top of our 3D scene. We'll
-    // use a dynamic texture to render the HUD.
+	var self = this;
 
-	// Create shortcuts for window size.
-    var width = window.innerWidth;
-    var height = window.innerHeight;
+	// Create otrhographic camera for HUD.
+	this.camera = new THREE.OrthographicCamera(-this.width/2, this.width/2, this.height/2, -this.height/2, 0, 30 );
 
-    // We will use 2D canvas element to render our HUD.
-  	var hudCanvas = document.createElement('canvas');
+	// Create also a custom scene for HUD.
+	this.scene = new THREE.Scene();
 
-    // Again, set dimensions to fit the screen.
-    hudCanvas.width = width;
-    hudCanvas.height = height;
+	// We will use 2D canvas element to render our HUD.
+	var hudCanvas = document.createElement('canvas');
 
-    // Get 2D context and draw something supercool.
-    this.hudBitmap = hudCanvas.getContext('2d');
-  	this.hudBitmap.font = "Normal 40px Arial";
-    this.hudBitmap.textAlign = 'center';
-    this.hudBitmap.fillStyle = "rgba(245,245,245,0.75)";
-    this.hudBitmap.fillText('Initializing...', width / 2, height / 2);
+	// Set dimensions to fit the screen.
+	hudCanvas.width = this.width;
+	hudCanvas.height = this.height;
 
-    // Create the camera and set the viewport to match the screen dimensions.
-    this.camera = new THREE.OrthographicCamera(-width/2, width/2, height/2, -height/2, 0, 30 );
+	// Get 2D context and draw something.
+	this.hudBitmap = hudCanvas.getContext('2d');
 
-    // Create also a custom scene for HUD.
-    this.scene = new THREE.Scene();
+	// Create texture from rendered graphics.
+	this.hudTexture = new THREE.Texture(hudCanvas)
+	this.hudTexture.needsUpdate = true;
+	this.hudTexture.minFilter = THREE.NearestFilter;
 
-  	// Create texture from rendered graphics.
-  	var hudTexture = new THREE.Texture(hudCanvas)
-  	hudTexture.needsUpdate = true;
+	// Create HUD material.
+	var material = new THREE.MeshBasicMaterial( {map: this.hudTexture } );
+	material.transparent = true;
 
-    // Create HUD material.
-    var material = new THREE.MeshBasicMaterial( {map: hudTexture} );
-    material.transparent = true;
+	// var material = new THREE.MeshBasicMaterial( {color: 0x00ff00 } );
 
-    // Create plane to render the HUD. This plane fill the whole screen.
-    var planeGeometry = new THREE.PlaneGeometry( width, height );
-    var plane = new THREE.Mesh( planeGeometry, material );
-	plane.z = 10;
+	// Create plane to render the HUD. This plane fill the whole
+	// screen.
+	var planeGeometry = new THREE.PlaneGeometry( this.width, this.height );
+	var plane = new THREE.Mesh( planeGeometry, material );
+	this.scene.add( plane );
 
-    this.scene.add( plane );
+	this.image = new Image();
+	this.image.onload = function() {
+		var newWidth = self.image.width / 2;
+		var newHeight = self.image.height / 2;
+		var padding = 20;
+		self.hudBitmap.globalAlpha = 0.7;
+		self.hudBitmap.drawImage(self.image, 0, 0, self.image.width, self.image.height, self.width - newWidth - padding, padding, newWidth, newHeight);
+		self.hudBitmap.globalAlpha = 1;
+	};
+	this.image.src = "img/pelago_logo.png";
 
 }
 
 
 
+HUD.prototype.nextItem = function() {
+	if (typeof(this.items[this.selectedItem + 1]) != "undefined") {
+		this.selectedItem++;
+	}
+}
+
+HUD.prototype.previousItem = function() {
+	if (typeof(this.items[this.selectedItem - 1]) != "undefined") {
+		this.selectedItem--;
+	}
+}
+
+HUD.prototype.previousOption = function() {
+	var i = this.items[this.selectedItem];
+	if (typeof(i.options[ i.selected - 1 ]) != "undefined") {
+		i.selected--;
+	}
+}
+
+HUD.prototype.nextOption = function() {
+	var i = this.items[this.selectedItem];
+	if (typeof(i.options[ i.selected + 1 ]) != "undefined") {
+		i.selected++;
+	}
+}
+
+HUD.prototype.getItem = function() {
+	return this.items[this.selectedItem].key;
+}
+
+HUD.prototype.getOption = function() {
+	return this.items[this.selectedItem].options[ this.items[this.selectedItem].selected ].key;
+}
+
 
 HUD.prototype.render = function(renderer, delta) {
 
-  this.hudBitmap.clearRect(0, 0, this.width, this.height);
+  var self = this;
 
+  this.hudBitmap.clearRect(0, this.height / 2, this.width, this.height / 2);
+
+/*
   var y = this.height - 100;
   var ySpacing = 40;
   var yOffset = - this.selectedItem * ySpacing;
@@ -134,41 +167,41 @@ HUD.prototype.render = function(renderer, delta) {
   // Item has changed.
   if (this.currentItem != this.selectedItem) {
 
-    // Reset progress on the first iteration.
-    if (!this.tweenRunning) {
-      this.tweenRunning = true;
-      this.tweenProgress = 0;
-    }
+	// Reset progress on the first iteration.
+	if (!this.tweenRunning) {
+	  this.tweenRunning = true;
+	  this.tweenProgress = 0;
+	}
 
-    // Calculate progress.
-    this.tweenProgress += delta * 5;
+	// Calculate progress.
+	this.tweenProgress += delta * 5;
 
-    // Calculate position.
-    if (this.currentItem < this.selectedItem) {
-      yOffset = (-this.currentItem - this.tweenProgress) * ySpacing;
-    } else {
-      yOffset = (-this.currentItem + this.tweenProgress) * ySpacing;
-    }
+	// Calculate position.
+	if (this.currentItem < this.selectedItem) {
+	  yOffset = (-this.currentItem - this.tweenProgress) * ySpacing;
+	} else {
+	  yOffset = (-this.currentItem + this.tweenProgress) * ySpacing;
+	}
 
-    // Adjust opacity.
-    for (var i = 0; i < this.items.length; i++) {
-      if (i == this.selectedItem) {
-        this.items[i].opacity = this.tweenProgress;
-      } else if (i == this.currentItem) {
-        this.items[i].opacity = 1 - this.tweenProgress;
-      }
-    };
+	// Adjust opacity.
+	for (var i = 0; i < this.items.length; i++) {
+	  if (i == this.selectedItem) {
+		this.items[i].opacity = this.tweenProgress;
+	  } else if (i == this.currentItem) {
+		this.items[i].opacity = 1 - this.tweenProgress;
+	  }
+	};
 
-    // Handle tween end.
-    if (this.tweenProgress >= 1) {
-      this.tweenRunning = false;
-      this.currentItem = this.selectedItem;
-      this.tweenProgress = 1;
+	// Handle tween end.
+	if (this.tweenProgress >= 1) {
+	  this.tweenRunning = false;
+	  this.currentItem = this.selectedItem;
+	  this.tweenProgress = 1;
 
-      // Place item.
-      yOffset = -this.currentItem * ySpacing;
+	  // Place item.
+	  yOffset = -this.currentItem * ySpacing;
 
-    }
+	}
 
   }
 
@@ -176,88 +209,36 @@ HUD.prototype.render = function(renderer, delta) {
   var i = 0;
   for (var key in this.items) {
 
-    this.hudBitmap.font = "Bold 20px Futura";
-    this.hudBitmap.textAlign = 'right';
-    this.hudBitmap.fillStyle = "rgba(245,245,245,"+this.items[key].opacity+")";
+	this.hudBitmap.font = "Bold 20px Futura";
+	this.hudBitmap.textAlign = 'right';
+	this.hudBitmap.fillStyle = "rgba(245,245,245,"+this.items[key].opacity+")";
 
-    this.hudBitmap.fillText(
-      this.items[key].label + ":",
-      this.width / 2 - xSpacing,
-      y + yOffset + i * ySpacing
-    );
+	this.hudBitmap.fillText(
+	  this.items[key].label + ":",
+	  this.width / 2 - xSpacing,
+	  y + yOffset + i * ySpacing
+	);
 
-     /*
-    this.hudBitmap.font = "Normal 20px Futura";
-    this.hudBitmap.textAlign = 'left';
-    this.hudBitmap.fillStyle = "rgba(245,245,245,0.7)";
+	i++;
 
-    this.hudBitmap.fillText(this.items[key].options[0].label, this.width / 2 + xSpacing, yOffset + i * ySpacing);
-    */
-
-    i++;
-
-  }
+}*/
 
   this.hudTexture.needsUpdate = true;
 
 
-  //renderer.render(this.scene, this.camera);
-
-}
 
 
+  this.hudBitmap.font = "Bold 40px Futura";
+  this.hudBitmap.textAlign = 'right';
+  this.hudBitmap.fillStyle = "rgba(245,245,245,0.95)";
+  this.hudBitmap.fillText(this.items[this.selectedItem].label + ": ", this.width / 2, this.height - 80);
+
+  this.hudBitmap.font = "Normal 40px Futura";
+  this.hudBitmap.textAlign = 'left';
+  this.hudBitmap.fillStyle = "rgba(245,245,245,0.6)";
+  this.hudBitmap.fillText(this.items[this.selectedItem].options[ this.items[this.selectedItem].selected ].label, this.width / 2, this.height - 80);
 
 
-
-
-
-
-
-
-
-
-
-
-HUD.prototype.init2 = function(scene, camera) {
-
-    // http://thehelpcentre.xyz/question/19046972/three-js-cannot-view-a-sprite-through-a-mesh-with-transparency
-
-	// Ok, now we have the cube. Next we'll create the hud. For that we'll
-    // need a separate scene which we'll render on top of our 3D scene. We'll
-    // use a dynamic texture to render the HUD.
-
-    var width = 200;
-    var height = 15;
-
-    // We will use 2D canvas element to render our HUD.
-  	var hudCanvas = document.createElement('canvas');
-
-    // Again, set dimensions to fit the screen.
-    hudCanvas.width = width * 5;
-    hudCanvas.height = height * 5;
-
-    // Get 2D context and draw something supercool.
-    var hudBitmap = hudCanvas.getContext('2d');
-  	hudBitmap.font = "Normal 20px Arial";
-    hudBitmap.textAlign = 'center';
-    hudBitmap.fillStyle = "rgba(245,245,245,0.75)";
-    hudBitmap.fillText('Initializing...', width / 2, height / 2);
-
-  	// Create texture from rendered graphics.
-  	var hudTexture = new THREE.Texture(hudCanvas)
-  	hudTexture.needsUpdate = true;
-
-    // Create HUD material.
-    var material = new THREE.MeshBasicMaterial( {map: hudTexture} );
-    material.transparent = true;
-
-    var material2 = new THREE.MeshBasicMaterial( {color: 0xff0000} );
-
-    // Create plane for hud.
-    var geometry = new THREE.PlaneGeometry(width, height);
-    this.plane = new THREE.Mesh( geometry, material2 );
-
-    scene.add( this.plane );
-
+  renderer.render(this.scene, this.camera);
 
 }

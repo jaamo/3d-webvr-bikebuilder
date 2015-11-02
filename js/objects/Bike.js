@@ -35,39 +35,44 @@ Bike.prototype.init = function(scene, successCallback) {
 		// cast shadow anyway. Like some nuts ect. But I think
 		// this is fine right now.
 		self.obj.traverse(function(obj) {
-			console.log(obj.name);
 			if (obj.type == "Mesh") {
 				obj.castShadow = true;
 			}
 		});
 
-		// var group = this.colors[groupName];
-
-		// Get new color
-		// group.currentColor = (group.currentColor + 1) % group.colors.length;
-		// var color = new THREE.Color(group.colors[ group.currentColor ]);
-
-		console.log(self.obj.getObjectByName("RearWheel"));
-		console.log(self.obj.getObjectByName("Saddle"));
-
-		// Get materials for given objects.
-		// for (var i in group.objects) {
-		// self.obj.getObjectByName("Frame").children[0].material.materials[0].color = new THREE.Color(0xff0000);
-		// self.obj.getObjectByName("Frame").children[0].material.materials[1].color = new THREE.Color(0xff0000);
-		//
-		// self.obj.getObjectByName("Saddle").children[0].material.color = new THREE.Color(0x00ff00);
-		// self.obj.getObjectByName("Saddle").children[0].material.color = new THREE.Color(0x00ff00);
-		//
-		// self.obj.getObjectByName("RearWheel").children[0].material.materials[2].color = new THREE.Color(0x0000ff);
-
-		// }
-
-		// return group.colors[ group.currentColor ];
-
-
 		successCallback();
 
-
 	});
+
+}
+
+
+
+/**
+ * Set color.
+ *
+ * @param  {String} group Group name (frame / saddle / tires).
+ * @param  {Number} color Hex code: 0x00ff00
+ */
+Bike.prototype.setColor = function(group, color) {
+
+	var self = this;
+
+	console.log(group + " " + color);
+
+	if (group == "frame") {
+		self.obj.getObjectByName("Frame").children[0].material.materials[0].color = new THREE.Color(color);
+		self.obj.getObjectByName("Frame").children[0].material.materials[1].color = new THREE.Color(color);
+	}
+
+	if (group == "saddle") {
+		self.obj.getObjectByName("Saddle").children[0].material.color = new THREE.Color(color);
+		self.obj.getObjectByName("Saddle").children[0].material.color = new THREE.Color(color);
+	}
+
+	if (group == "tires") {
+		self.obj.getObjectByName("RearWheel").children[0].material.materials[2].color = new THREE.Color(color);
+	}
+
 
 }

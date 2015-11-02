@@ -216,7 +216,7 @@ BikeBuilder.prototype.initFloor = function() {
 
 	var geometry = new THREE.CylinderGeometry( 300, 300, 20, 32 );
 
-	var material = new THREE.MeshBasicMaterial( { color: 0xdddddd, side: THREE.FrontSide } );
+	var material = new THREE.MeshBasicMaterial( { color: 0x202020, side: THREE.FrontSide } );
 	var floor = new THREE.Mesh( geometry, material );
 
 	floor.material.side = THREE.DoubleSide;
@@ -240,12 +240,15 @@ BikeBuilder.prototype.initShapes = function() {
 	var self = this;
 
 	// Initialize bike.
-	// this.bike = new Bike()
-	// this.bike.init(this.scene, function() {
-	//
-	// 	console.log("Model loaded.");
-	//
-	// });
+	this.bike = new Bike()
+	this.bike.init(this.scene, function() {
+
+		console.log("Reset colors");
+		for (var i in self.hud.items) {
+			self.bike.setColor(self.hud.items[i].key, self.hud.items[i].options[0].key);
+		}
+
+	});
 
 	// Init photowall.
 	// this.someWall = new SomeWall();
@@ -380,18 +383,30 @@ BikeBuilder.prototype.render = function() {
 	var delta = this.clock.getDelta();
 	var elapsed = this.clock.getElapsedTime();
 
-	// Autorotate camera.
-	//if (typeof(this.dae) != "undefined") {
-	//this.dae.rotation.y = this.clock.getElapsedTime() / 4;
-	//}
-	//console.log(this.camera.position.x + ", " + this.camera.position.y + ", " + this.camera.position.z)
-
+	// Handle bike rotation.
 	if (this.gamepadControls.active("axis1left") > 0) {
 		this.bike.obj.rotation.y += (Math.PI / 2) * delta * this.gamepadControls.active("axis1left");
 	}
 	if (this.gamepadControls.active("axis1right") > 0) {
 		this.bike.obj.rotation.y -= (Math.PI / 2) * delta * this.gamepadControls.active("axis1right");
 	}
+
+	// Handle menu events.
+	if (this.gamepadControls.pressed("axis3up")) {
+		this.hud.previousItem();
+	}
+	if (this.gamepadControls.pressed("axis3down")) {
+		this.hud.nextItem();
+	}
+	if (this.gamepadControls.pressed("axis3left")) {
+		this.hud.previousOption();
+		this.bike.setColor(this.hud.getItem(), this.hud.getOption());
+	}
+	if (this.gamepadControls.pressed("axis3right")) {
+		var options = this.hud.nextOption();
+		this.bike.setColor(this.hud.getItem(), this.hud.getOption());
+	}
+	this.gamepadControls.resetPressed();
 
 	// Run tweens.
 	TWEEN.update();
@@ -431,7 +446,8 @@ BikeBuilder.prototype.render = function() {
 
 		this.renderer.clear();
 		this.renderer.render(this.scene, this.camera);
-		this.renderer.render(this.hud.scene, this.hud.camera);
+		this.hud.render(this.renderer, delta);
+		// this.renderer.render(this.hud.scene, this.hud.camera);
 
 
 	}

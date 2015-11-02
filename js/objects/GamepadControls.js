@@ -9,13 +9,20 @@ var GamepadControls = new Function();
 /* Object of pressed keys. */
 GamepadControls.prototype.keys = {};
 
+/* Object of pressed keys. Previous state. */
+GamepadControls.prototype.previousKeys = {};
+
 /* Joystic threshold */
 GamepadControls.prototype.threshold = 0.2;
 
 /* Map function names to keycode. */
 GamepadControls.prototype.keyMap = {
 	"axis1left": 65,
-	"axis1right": 68
+	"axis1right": 68,
+	"axis3up": 73,
+	"axis3down": 75,
+	"axis3left": 74,
+	"axis3right": 76
 };
 
 /* Connected gamepad. */
@@ -102,4 +109,25 @@ GamepadControls.prototype.active = function(fn) {
 
 	return false;
 
+}
+
+
+
+/**
+ * Return true if given function is pressed.
+ *
+ * @param  {String} fn Function name.
+ * @return {Boolean}      Pressed or not.
+ */
+GamepadControls.prototype.pressed = function(fn) {
+
+	// If previous state was true and the current state is false, key is pressed.
+	if (this.previousKeys[this.keyMap[fn]] && !this.keys[this.keyMap[fn]]) {
+		return true;
+	}
+
+}
+
+GamepadControls.prototype.resetPressed = function() {
+	this.previousKeys = JSON.parse(JSON.stringify(this.keys));;
 }
