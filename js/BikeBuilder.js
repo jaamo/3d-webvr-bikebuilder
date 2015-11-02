@@ -33,7 +33,8 @@ BikeBuilder.prototype.vrEnabled = false;
 BikeBuilder.prototype.width = window.innerWidth;
 BikeBuilder.prototype.height = window.innerHeight;
 
-
+/* Websocket handler. */
+BikeBuilder.prototype.socket = false;
 
 
 
@@ -48,10 +49,12 @@ BikeBuilder.prototype.init = function init() {
     this.initVR();
 	this.initLight();
 	this.initFloor();
-	this.initShapes();
+	this.initShapes(); // <- triggers render loop when load complete
 	this.initClock();
 	this.initControls();
-	this.render();
+	this.initSocket();
+
+	//this.render();
 
 };
 
@@ -248,11 +251,13 @@ BikeBuilder.prototype.initShapes = function() {
 			self.bike.setColor(self.hud.items[i].key, self.hud.items[i].options[0].key);
 		}
 
-	});
+		// Init photowall.
+		self.someWall = new SomeWall();
+		self.someWall.init(self.scene);
 
-	// Init photowall.
-	// this.someWall = new SomeWall();
-	// this.someWall.init(this.scene);
+		self.render();
+
+	});
 
 	// // Hub.
 	this.hud = new HUD();
@@ -281,6 +286,31 @@ BikeBuilder.prototype.initControls = function() {
 
 	this.gamepadControls = new GamepadControls();
 	this.gamepadControls.init();
+
+}
+
+
+
+/**
+ * Init websocket connection.
+ */
+BikeBuilder.prototype.initSocket = function() {
+
+	this.socket = new Socket();
+
+	if ($.urlParam("socket") == "master") {
+
+		this.socket.mode = "master";
+		this.socket.openConnection();
+
+	}
+
+	if ($.urlParam("socket") == "slave") {
+
+		this.socket.mode = "slave";
+		this.socket.openConnection();
+
+	}
 
 }
 
@@ -323,47 +353,6 @@ BikeBuilder.prototype.toggleVR = function() {
 
 
 /**
- * Toggle frame materials.
- */
-BikeBuilder.prototype.toggleMaterial = function(groupName) {
-
-	var group = this.colors[groupName];
-
-	// Get new color
-	group.currentColor = (group.currentColor + 1) % group.colors.length;
-	var color = new THREE.Color(group.colors[ group.currentColor ]);
-
-	// Get materials for given objects.
-	for (var i in group.objects) {
-		this.dae.getObjectByName(group.objects[i]).children[0].material.color = color;
-	}
-
-	return group.colors[ group.currentColor ];
-
-}
-
-
-
-BikeBuilder.prototype.setMaterial = function(groupName, color) {
-
-	var group = this.colors[groupName];
-
-	// Get new color
-	//group.currentColor = (group.currentColor + 1) % group.colors.length;
-	var color = new THREE.Color(color);
-
-	// Get materials for given objects.
-	for (var i in group.objects) {
-		this.dae.getObjectByName(group.objects[i]).children[0].material.color = color;
-	}
-
-	//  return group.colors[ group.currentColor ];
-
-}
-
-
-
-/**
  * Handle window resize.
  */
 BikeBuilder.prototype.onWindowResize = function() {
@@ -382,6 +371,9 @@ BikeBuilder.prototype.render = function() {
 
 	var delta = this.clock.getDelta();
 	var elapsed = this.clock.getElapsedTime();
+
+	// Socket pre render routines.
+	this.socket.handleRender(this);
 
 	// Handle bike rotation.
 	if (this.gamepadControls.active("axis1left") > 0) {
@@ -412,7 +404,7 @@ BikeBuilder.prototype.render = function() {
 	TWEEN.update();
 
 	// Animate wall.
-	// this.someWall.animate(delta, elapsed);
+	this.someWall.animate(delta, elapsed);
 
 	if (this.vrControlsEnabled) {
 
@@ -451,6 +443,9 @@ BikeBuilder.prototype.render = function() {
 
 
 	}
+
+	// Socket post render routines.
+	// this.socket.postRender(this);
 
 	// Request new frame.
 	requestAnimationFrame(this.render.bind(this));
