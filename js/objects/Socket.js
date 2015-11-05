@@ -95,7 +95,7 @@ Socket.prototype.socketClose = function(event) {
 Socket.prototype.handleRender = function(bikeBuilder) {
 
 	// Do nothing if connection is not open.
-	if (this.exampleSocket.readyState != this.exampleSocket.OPEN) {
+	if (this.mode == "" || this.exampleSocket.readyState != this.exampleSocket.OPEN) {
 		return false;
 	}
 
@@ -118,6 +118,12 @@ Socket.prototype.handleRender = function(bikeBuilder) {
 					x: bikeBuilder.camera.position.x,
 					y: bikeBuilder.camera.position.y,
 					z: bikeBuilder.camera.position.z
+				},
+				quaternion: {
+					x: bikeBuilder.camera.quaternion.x,
+					y: bikeBuilder.camera.quaternion.y,
+					z: bikeBuilder.camera.quaternion.z,
+					w: bikeBuilder.camera.quaternion.w
 				}
 			},
 			hud: {
@@ -145,6 +151,10 @@ Socket.prototype.handleRender = function(bikeBuilder) {
 			bikeBuilder.camera.position.x = this.data.camera.position.x;
 			bikeBuilder.camera.position.y = this.data.camera.position.y;
 			bikeBuilder.camera.position.z = this.data.camera.position.z;
+			// bikeBuilder.camera.quaternion.x = this.data.camera.position.x;
+			// bikeBuilder.camera.quaternion.y = this.data.camera.position.y;
+			// bikeBuilder.camera.quaternion.z = this.data.camera.position.z;
+			// bikeBuilder.camera.quaternion.w = this.data.camera.position.w;
 			bikeBuilder.hud.selectedItem = this.data.hud.selectedItem;
 			bikeBuilder.hud.items = this.data.hud.items;
 			bikeBuilder.bike.setColor("frame", this.data.colors.frame);

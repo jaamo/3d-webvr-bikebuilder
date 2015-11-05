@@ -12,8 +12,11 @@ GamepadControls.prototype.keys = {};
 /* Object of pressed keys. Previous state. */
 GamepadControls.prototype.previousKeys = {};
 
-/* Joystic threshold */
+/* Joystic threshold for analog movement. */
 GamepadControls.prototype.threshold = 0.2;
+
+/* Joystic threshold for "binary keypress". */
+GamepadControls.prototype.pressThreshold = 0.5;
 
 /* Map function names to keycode. */
 GamepadControls.prototype.keyMap = {
@@ -24,6 +27,7 @@ GamepadControls.prototype.keyMap = {
 	"axis3left": 74,
 	"axis3right": 76
 };
+
 
 /* Connected gamepad. */
 GamepadControls.prototype.gamepad = false;
@@ -105,6 +109,23 @@ GamepadControls.prototype.active = function(fn) {
 			return Math.abs(this.gamepad.axes[0]);
 		}
 
+		if (fn == "axis3left" && this.gamepad.axes[2] < -this.threshold) {
+			return Math.abs(this.gamepad.axes[2]);
+		}
+
+		if (fn == "axis3right" && this.gamepad.axes[2] > this.threshold) {
+			return Math.abs(this.gamepad.axes[2]);
+		}
+
+		if (fn == "axis3up" && this.gamepad.axes[3] < -this.threshold) {
+			return Math.abs(this.gamepad.axes[3]);
+		}
+
+		if (fn == "axis3down" && this.gamepad.axes[3] > this.threshold) {
+			return Math.abs(this.gamepad.axes[3]);
+		}
+
+
 	}
 
 	return false;
@@ -124,6 +145,44 @@ GamepadControls.prototype.pressed = function(fn) {
 	// If previous state was true and the current state is false, key is pressed.
 	if (this.previousKeys[this.keyMap[fn]] && !this.keys[this.keyMap[fn]]) {
 		return true;
+	}
+
+	if (this.previousKeys[fn] && !this.keys[fn]) {
+		return true;
+	}
+
+
+}
+
+GamepadControls.prototype.initPressed = function() {
+
+	// Handle gamepad input.
+	if (this.gamepad) {
+
+		if (this.gamepad.axes[2] < -this.pressThreshold) {
+			this.keys["axis3left"] = true;
+		} else {
+			this.keys["axis3left"] = false;
+		}
+
+		if (this.gamepad.axes[2] > this.pressThreshold) {
+			this.keys["axis3right"] = true;
+		} else {
+			this.keys["axis3right"] = false;
+		}
+
+		if (this.gamepad.axes[3] < -this.pressThreshold) {
+			this.keys["axis3up"] = true;
+		} else {
+			this.keys["axis3up"] = false;
+		}
+
+		if (this.gamepad.axes[3] > this.pressThreshold) {
+			this.keys["axis3down"] = true;
+		} else {
+			this.keys["axis3down"] = false;
+		}
+
 	}
 
 }

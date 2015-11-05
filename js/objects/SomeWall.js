@@ -21,12 +21,12 @@ SomeWall.prototype.lastAnimateTime = 0;
 
 SomeWall.prototype.init = function(scene, successCallback) {
 
-    for (var i = 1; i <= 26; i++) {
-        this.photoUrls.push("img/pelago/thumb/" + i + ".jpg");
-    }
+	for (var i = 1; i <= 26; i++) {
+		this.photoUrls.push("img/pelago/thumb/" + i + ".jpg");
+	}
 
 	this.photos = [];
-	var max = 15;
+	this.photosPerRow = 15;
 	this.maxRows = 10;
 	this.rowSpacing = 25;
 	var distance = 1000;
@@ -34,10 +34,10 @@ SomeWall.prototype.init = function(scene, successCallback) {
 	this.rowOffset = this.maxRows * (this.boxSize + this.rowSpacing) / 2;
 	for (var row = 0; row < this.maxRows; row++) {
 
-		for (var i = 0; i < max; i++) {
+		for (var i = 0; i < this.photosPerRow; i++) {
 
-			var progress = i / max;
-            var randomDistance = 1000 + 2000 * Math.random();
+			var progress = i / this.photosPerRow;
+			var randomDistance = 1000 + 2000 * Math.random();
 
 			var geometry = new THREE.PlaneGeometry(this.boxSize, this.boxSize, 1);
 			var material = new THREE.MeshPhongMaterial({
@@ -132,14 +132,16 @@ SomeWall.prototype.init = function(scene, successCallback) {
 SomeWall.prototype.animate = function(delta, elapsed) {
 
 	var l = this.photos.length;
+
+	// Let photos fall.
 	for (var i = 0; i < l; i++) {
+		var row = Math.floor(i / this.photosPerRow);
 		var photo = this.photos[i];
-		photo.position.y -= 100 * delta;
-		if (photo.position.y < -this.rowOffset) {
-			photo.position.y = (1 + this.maxRows) * (this.boxSize + this.rowSpacing) - this.rowOffset; // <- there is a bug!!
-		}
+		var y = (100 * elapsed + row * (this.boxSize + this.rowSpacing)) % (2 * this.rowOffset);
+		photo.position.y = this.rowOffset - y;
 	}
 
+	// Apply "fly in and out" tween to random elements.
 	var delay = elapsed - this.lastAnimateTime;
 	if (delay > 5) {
 		for (var i = 0; i < 40; i++) {

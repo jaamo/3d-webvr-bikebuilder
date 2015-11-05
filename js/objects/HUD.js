@@ -17,6 +17,13 @@ HUD.prototype.tweenProgress = 0;
 HUD.prototype.selectedItem = 0;
 HUD.prototype.currentItem = 0;
 
+// Active keys.
+HUD.prototype.keyUp = false;
+HUD.prototype.keyDown = false;
+HUD.prototype.keyLeft = false;
+HUD.prototype.keyRight = false;
+
+
 HUD.prototype.items = [
   {
 	"label": "Frame",
@@ -102,10 +109,16 @@ HUD.prototype.init = function(scene, camera) {
 	var plane = new THREE.Mesh( planeGeometry, material );
 	this.scene.add( plane );
 
+    this.hudBitmap.font = "Normal 20px Helvetica";
+	this.hudBitmap.textAlign = 'left';
+	this.hudBitmap.fillStyle = "rgba(245,245,245,0.6)";
+	this.hudBitmap.fillText("WebVR demo running on Firefox. No plugins. Just magic.", 20, 40);
+
+
 	this.image = new Image();
 	this.image.onload = function() {
-		var newWidth = self.image.width / 2;
-		var newHeight = self.image.height / 2;
+		var newWidth = self.image.width / 1;
+		var newHeight = self.image.height / 1;
 		var padding = 20;
 		self.hudBitmap.globalAlpha = 0.7;
 		self.hudBitmap.drawImage(self.image, 0, 0, self.image.width, self.image.height, self.width - newWidth - padding, padding, newWidth, newHeight);
@@ -152,93 +165,87 @@ HUD.prototype.getOption = function() {
 }
 
 
-HUD.prototype.render = function(renderer, delta) {
+HUD.prototype.render = function(renderer, delta, vr) {
 
-  var self = this;
+	var self = this;
 
-  this.hudBitmap.clearRect(0, this.height / 2, this.width, this.height / 2);
+	// Clear bottom of the screen (keep logo);
+	this.hudBitmap.clearRect(0, this.height / 2, this.width, this.height / 2);
 
-/*
-  var y = this.height - 100;
-  var ySpacing = 40;
-  var yOffset = - this.selectedItem * ySpacing;
-  var xSpacing = 2;
+	// Require update for this texture.
+	this.hudTexture.needsUpdate = true;
 
-  // Item has changed.
-  if (this.currentItem != this.selectedItem) {
-
-	// Reset progress on the first iteration.
-	if (!this.tweenRunning) {
-	  this.tweenRunning = true;
-	  this.tweenProgress = 0;
-	}
-
-	// Calculate progress.
-	this.tweenProgress += delta * 5;
-
-	// Calculate position.
-	if (this.currentItem < this.selectedItem) {
-	  yOffset = (-this.currentItem - this.tweenProgress) * ySpacing;
-	} else {
-	  yOffset = (-this.currentItem + this.tweenProgress) * ySpacing;
-	}
-
-	// Adjust opacity.
-	for (var i = 0; i < this.items.length; i++) {
-	  if (i == this.selectedItem) {
-		this.items[i].opacity = this.tweenProgress;
-	  } else if (i == this.currentItem) {
-		this.items[i].opacity = 1 - this.tweenProgress;
-	  }
-	};
-
-	// Handle tween end.
-	if (this.tweenProgress >= 1) {
-	  this.tweenRunning = false;
-	  this.currentItem = this.selectedItem;
-	  this.tweenProgress = 1;
-
-	  // Place item.
-	  yOffset = -this.currentItem * ySpacing;
-
-	}
-
-  }
-
-
-  var i = 0;
-  for (var key in this.items) {
-
-	this.hudBitmap.font = "Bold 20px Futura";
+	// Render category.
+	this.hudBitmap.font = "Bold 40px Bitter";
 	this.hudBitmap.textAlign = 'right';
-	this.hudBitmap.fillStyle = "rgba(245,245,245,"+this.items[key].opacity+")";
+	this.hudBitmap.fillStyle = "rgba(245,245,245,0.95)";
+	this.hudBitmap.fillText(this.items[this.selectedItem].label + ": ", this.width / 2, this.height - 80);
 
-	this.hudBitmap.fillText(
-	  this.items[key].label + ":",
-	  this.width / 2 - xSpacing,
-	  y + yOffset + i * ySpacing
-	);
+	// Render color.
+	this.hudBitmap.font = "Normal 40px Bitter";
+	this.hudBitmap.textAlign = 'left';
+	this.hudBitmap.fillStyle = "rgba(245,245,245,0.6)";
+	this.hudBitmap.fillText(this.items[this.selectedItem].options[ this.items[this.selectedItem].selected ].label, this.width / 2, this.height - 80);
 
-	i++;
+	this.drawTriangle(this.width * 0.37, this.height - 90, "left", this.keyLeft);
+	this.drawTriangle(this.width * 0.62, this.height - 90, "right", this.keyRight);
+	this.drawTriangle(this.width * 0.5, this.height - 130, "up", this.keyUp);
+	this.drawTriangle(this.width * 0.5, this.height - 55, "down", this.keyDown);
 
-}*/
+	// If vr is enabled, render hud for both eyes.
+	if (vr) {
 
-  this.hudTexture.needsUpdate = true;
+		var size = renderer.getSize();
+		size.width /= 2;
 
+		renderer.setViewport( 0, 0, size.width, size.height );
+		renderer.setScissor( 0, 0, size.width, size.height );
+		renderer.render( this.scene, this.camera );
 
+		renderer.setViewport( size.width, 0, size.width, size.height );
+		renderer.setScissor( size.width, 0, size.width, size.height );
+		renderer.render( this.scene, this.camera );
 
+	} else {
 
-  this.hudBitmap.font = "Bold 40px Futura";
-  this.hudBitmap.textAlign = 'right';
-  this.hudBitmap.fillStyle = "rgba(245,245,245,0.95)";
-  this.hudBitmap.fillText(this.items[this.selectedItem].label + ": ", this.width / 2, this.height - 80);
+		renderer.render(this.scene, this.camera);
 
-  this.hudBitmap.font = "Normal 40px Futura";
-  this.hudBitmap.textAlign = 'left';
-  this.hudBitmap.fillStyle = "rgba(245,245,245,0.6)";
-  this.hudBitmap.fillText(this.items[this.selectedItem].options[ this.items[this.selectedItem].selected ].label, this.width / 2, this.height - 80);
+	}
 
+}
 
-  renderer.render(this.scene, this.camera);
+HUD.prototype.drawTriangle = function(x, y, direction, active) {
+
+	var size = 15;
+
+	if (active) {
+		this.hudBitmap.fillStyle = "rgba(245,245,245,0.8)";
+	} else {
+		this.hudBitmap.fillStyle = "rgba(245,245,245,0.1)";
+	}
+
+	this.hudBitmap.beginPath();
+	if (direction == "left") {
+		this.hudBitmap.moveTo(x, y);
+		this.hudBitmap.lineTo(x + size, y + size);
+		this.hudBitmap.lineTo(x + size, y - size);
+	}
+	if (direction == "right") {
+		this.hudBitmap.moveTo(x + size, y);
+		this.hudBitmap.lineTo(x, y + size);
+		this.hudBitmap.lineTo(x, y - size);
+	}
+	if (direction == "up") {
+		this.hudBitmap.moveTo(x, y - size);
+		this.hudBitmap.lineTo(x + size, y);
+		this.hudBitmap.lineTo(x - size, y);
+	}
+	if (direction == "down") {
+		this.hudBitmap.moveTo(x, y + size);
+		this.hudBitmap.lineTo(x + size, y);
+		this.hudBitmap.lineTo(x - size, y);
+	}
+	this.hudBitmap.fill();
+
 
 }

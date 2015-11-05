@@ -43,6 +43,11 @@ BikeBuilder.prototype.socket = false;
  */
 BikeBuilder.prototype.init = function init() {
 
+	// Oculus or not.
+	if ($.urlParam("vr") == "true") {
+		this.vrControlsEnabled = true;
+	}
+
 	this.scene = new THREE.Scene();
 	this.initRenderer();
     this.initCamera();
@@ -54,7 +59,7 @@ BikeBuilder.prototype.init = function init() {
 	this.initControls();
 	this.initSocket();
 
-	//this.render();
+	this.render();
 
 };
 
@@ -105,8 +110,9 @@ BikeBuilder.prototype.initRenderer = function() {
 
 	this.renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
 
+	this.renderer.autoClear = false;
+
 	if (!this.vrControlsEnabled) {
-		this.renderer.autoClear = false;
 		this.renderer.setSize( this.width, this.height );
 	}
 
@@ -258,8 +264,10 @@ BikeBuilder.prototype.initShapes = function() {
 		self.render();
 
 	});
+	// self.someWall = new SomeWall();
+	// self.someWall.init(self.scene);
 
-	// // Hub.
+	// Hub.
 	this.hud = new HUD();
 	this.hud.init(this.scene, this.camera);
 
@@ -383,7 +391,14 @@ BikeBuilder.prototype.render = function() {
 		this.bike.obj.rotation.y -= (Math.PI / 2) * delta * this.gamepadControls.active("axis1right");
 	}
 
+	if (this.gamepadControls.active("axis3up") > 0) { this.hud.keyUp = true; } else { this.hud.keyUp = false; }
+	if (this.gamepadControls.active("axis3down") > 0) { this.hud.keyDown = true; } else { this.hud.keyDown = false; }
+	if (this.gamepadControls.active("axis3left") > 0) { this.hud.keyLeft = true; } else { this.hud.keyLeft = false; }
+	if (this.gamepadControls.active("axis3right") > 0) { this.hud.keyRight = true; } else { this.hud.keyRight = false; }
+
+
 	// Handle menu events.
+	this.gamepadControls.initPressed();
 	if (this.gamepadControls.pressed("axis3up")) {
 		this.hud.previousItem();
 	}
@@ -423,14 +438,21 @@ BikeBuilder.prototype.render = function() {
 		this.camera.updateMatrixWorld();
 
 	    //this.camera.updateProjectionMatrix();
+		this.renderer.clear();
 		this.vrEffect.render(this.scene, this.camera);
+		this.hud.render(this.renderer, delta, true);
 
 
 
 	} else {
 
 		// Render scene.
-		this.controls.update();
+
+		// This is a little bit of a hack, but disable these
+		// controls when in socket slave mode.
+		if (this.socket.mode != "slave") {
+			this.controls.update();
+		}
 		this.camera.updateMatrixWorld();
 		this.camera.updateProjectionMatrix();
 
@@ -438,7 +460,7 @@ BikeBuilder.prototype.render = function() {
 
 		this.renderer.clear();
 		this.renderer.render(this.scene, this.camera);
-		this.hud.render(this.renderer, delta);
+		this.hud.render(this.renderer, delta, false);
 		// this.renderer.render(this.hud.scene, this.hud.camera);
 
 

@@ -58,8 +58,6 @@ Bike.prototype.setColor = function(group, color) {
 
 	var self = this;
 
-	console.log(group + " " + color);
-
 	if (group == "frame") {
 		self.obj.getObjectByName("Frame").children[0].material.materials[0].color = new THREE.Color(color);
 		self.obj.getObjectByName("Frame").children[0].material.materials[1].color = new THREE.Color(color);
