@@ -109,22 +109,23 @@ HUD.prototype.init = function(scene, camera) {
 	var plane = new THREE.Mesh( planeGeometry, material );
 	this.scene.add( plane );
 
-    this.hudBitmap.font = "Normal 20px Helvetica";
-	this.hudBitmap.textAlign = 'left';
-	this.hudBitmap.fillStyle = "rgba(245,245,245,0.6)";
-	this.hudBitmap.fillText("WebVR demo running on Firefox. No plugins. Just magic.", 20, 40);
+    // this.hudBitmap.font = "Normal 20px Helvetica";
+	// this.hudBitmap.textAlign = 'left';
+	// this.hudBitmap.fillStyle = "rgba(245,245,245,0.6)";
+	// this.hudBitmap.fillText("WebVR demo running on Firefox. No plugins. Just magic.", 20, 40);
 
 
-	this.image = new Image();
-	this.image.onload = function() {
-		var newWidth = self.image.width / 1;
-		var newHeight = self.image.height / 1;
-		var padding = 20;
-		self.hudBitmap.globalAlpha = 0.7;
-		self.hudBitmap.drawImage(self.image, 0, 0, self.image.width, self.image.height, self.width - newWidth - padding, padding, newWidth, newHeight);
-		self.hudBitmap.globalAlpha = 1;
-	};
-	this.image.src = "img/pelago_logo.png";
+
+	// this.image = new Image();
+	// this.image.onload = function() {
+	// 	var newWidth = self.image.width / 1;
+	// 	var newHeight = self.image.height / 1;
+	// 	var padding = 20;
+	// 	self.hudBitmap.globalAlpha = 0.7;
+	// 	self.hudBitmap.drawImage(self.image, 0, 0, self.image.width, self.image.height, self.width - newWidth - padding, padding, newWidth, newHeight);
+	// 	self.hudBitmap.globalAlpha = 1;
+	// };
+	// this.image.src = "img/pelago_logo.png";
 
 }
 

@@ -15,51 +15,61 @@ var BikeBuilder = new Function();
 BikeBuilder.prototype.scene = {};
 BikeBuilder.prototype.camera = {};
 BikeBuilder.prototype.renderer = {};
-BikeBuilder.prototype.composer = {};
+// BikeBuilder.prototype.composer = {};
 BikeBuilder.prototype.clock = {};
 
 /* Control mode. */
-BikeBuilder.prototype.vrControlsEnabled = false;
+// BikeBuilder.prototype.vrControlsEnabled = false;
 
 /* Gamepad input with keyboard fallback. */
 BikeBuilder.prototype.gamepadControls = {};
 
 /* WebVR controls and effect. */
-BikeBuilder.prototype.vrControls = {};
-BikeBuilder.prototype.vrEffect = {};
-BikeBuilder.prototype.vrEnabled = false;
+// BikeBuilder.prototype.vrControls = {};
+// BikeBuilder.prototype.vrEffect = {};
+// BikeBuilder.prototype.vrEnabled = false;
 
 /* Dimensions */
 BikeBuilder.prototype.width = window.innerWidth;
 BikeBuilder.prototype.height = window.innerHeight;
 
 /* Websocket handler. */
-BikeBuilder.prototype.socket = false;
+// BikeBuilder.prototype.socket = false;
 
 
 
 /**
  * Init scene.
  */
-BikeBuilder.prototype.init = function init() {
+BikeBuilder.prototype.init = function init(scene, camera, renderer, clock, gamepadControls, loadCallback) {
 
 	// Oculus or not.
-	if ($.urlParam("vr") == "true") {
-		this.vrControlsEnabled = true;
-	}
+	// if ($.urlParam("vr") == "true") {
+	// 	this.vrControlsEnabled = true;
+	// }
 
-	this.scene = new THREE.Scene();
-	this.initRenderer();
-    this.initCamera();
-    this.initVR();
+	this.scene = scene;
+	this.camera = camera;
+	this.renderer = renderer;
+	this.clock = clock;
+	this.gamepadControls = gamepadControls;
+	// this.socket = socket;
+
+	// this.scene = new THREE.Scene();
+	// this.initRenderer();
+	// this.initVR();
+	// this.initClock();
+	// this.initControls();
+	// this.initSocket();
+    // this.initCamera();
+
 	this.initLight();
 	this.initFloor();
-	this.initShapes(); // <- triggers render loop when load complete
-	this.initClock();
-	this.initControls();
-	this.initSocket();
+	this.initShapes(function() {
+		loadCallback();
+	}); // <- triggers render loop when load complete
 
-	this.render();
+	// this.render();
 
 };
 
@@ -79,109 +89,15 @@ BikeBuilder.prototype.initCamera = function() {
 	if (!this.vrControlsEnabled) {
 
 		this.controls = new THREE.OrbitControls( this.camera, this.renderer.domElement );
-		//controls.addEventListener( 'change', render ); // add this only if there is no animation loop (requestAnimationFrame)
 		this.controls.enableDamping = true;
 		this.controls.dampingFactor = 0.25;
 		this.controls.enableZoom = false;
 		this.controls.minPolarAngle = 0;
 		this.controls.maxPolarAngle = Math.PI * 0.55;
-		//  this.controls.minAzimuthAngle = Math.PI;
 
 	}
 
 };
-
-
-/**
- * Init clock.
- */
-BikeBuilder.prototype.initClock = function() {
-	this.clock = new THREE.Clock(true);
-}
-
-
-
-/**
- * Init renderer and shaders.
- */
-BikeBuilder.prototype.initRenderer = function() {
-
-    var self = this;
-
-	this.renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
-
-	this.renderer.autoClear = false;
-
-	if (!this.vrControlsEnabled) {
-		this.renderer.setSize( this.width, this.height );
-	}
-
-    this.renderer.setPixelRatio(window.devicePixelRatio);
-
-	// Background color.
-	this.renderer.setClearColor( 0x000000 , 1 );
-
-	// Enable shadowmaps.
-	this.renderer.shadowMapEnabled = true;
-	this.renderer.shadowMapType = THREE.PCFSoftShadowMap;
-
-	// Set autoclear to false. We're doing this manually.
-	// This is required for shaders to work.
-	// this.renderer.autoClear = false;
-	document.body.appendChild(this.renderer.domElement);
-
-    return;
-
-    // Skip shaders for now.
-
-	// Create effect composer to mix shaders.
-	this.composer = new THREE.EffectComposer( this.renderer );
-
-	// First render the scene.
-	this.composer.addPass(new THREE.RenderPass( this.scene, this.camera ));
-
-	// Init FXAA antialias shader.
-	var effectFXAA = new THREE.ShaderPass( THREE.FXAAShader );
-	effectFXAA.uniforms[ 'resolution' ].value.set( 1 / this.width, 1 / this.height );
-	this.composer.addPass( effectFXAA );
-
-	// Bloom
-	this.composer.addPass( new THREE.BloomPass( 0.4 ) );
-
-	// Copy pass.
-	var effectCopy = new THREE.ShaderPass( THREE.CopyShader );
-	effectCopy.renderToScreen = true; // Last pass needs to render to screen
-	this.composer.addPass( effectCopy );
-
-    // Handle window resize.
-    window.addEventListener('resize', function() {
-        self.onWindowResize();
-    }, false);
-
-
-};
-
-
-
-/**
- * Init webvr.
- */
-BikeBuilder.prototype.initVR = function() {
-
-
-	if (this.vrControlsEnabled) {
-
-		// Init VR controls.
-		this.vrControls = new THREE.VRControls(this.camera);
-
-		// Init VR effect.
-		this.vrEffect = new THREE.VREffect(this.renderer);
-		this.vrEffect.setSize(this.width, this.height);
-
-	}
-
-
-}
 
 
 
@@ -244,7 +160,7 @@ BikeBuilder.prototype.initFloor = function() {
 /**
  * Shapes.
  */
-BikeBuilder.prototype.initShapes = function() {
+BikeBuilder.prototype.initShapes = function(callback) {
 
 	var self = this;
 
@@ -258,10 +174,12 @@ BikeBuilder.prototype.initShapes = function() {
 		}
 
 		// Init photowall.
-		self.someWall = new SomeWall();
-		self.someWall.init(self.scene);
+		// self.someWall = new SomeWall();
+		// self.someWall.init(self.scene);
 
-		self.render();
+		callback();
+
+		// self.render();
 
 	});
 	// self.someWall = new SomeWall();
@@ -271,104 +189,10 @@ BikeBuilder.prototype.initShapes = function() {
 	this.hud = new HUD();
 	this.hud.init(this.scene, this.camera);
 
-	this.lensFlare = new LensFlare();
-	this.lensFlare.init(this.scene);
+	// this.lensFlare = new LensFlare();
+	// this.lensFlare.init(this.scene);
 
 };
-
-
-
-/**
- * Init controls.
- */
-BikeBuilder.prototype.initControls = function() {
-
-	var self = this;
-
-	// Toggle VR if f-button is pressed.
-	window.addEventListener('keydown', function(event) {
-		if (event.keyCode == 70) { // f
-			self.toggleVR();
-		}
-	}, true);
-
-	this.gamepadControls = new GamepadControls();
-	this.gamepadControls.init();
-
-}
-
-
-
-/**
- * Init websocket connection.
- */
-BikeBuilder.prototype.initSocket = function() {
-
-	this.socket = new Socket();
-
-	if ($.urlParam("socket") == "master") {
-
-		this.socket.mode = "master";
-		this.socket.openConnection();
-
-	}
-
-	if ($.urlParam("socket") == "slave") {
-
-		this.socket.mode = "slave";
-		this.socket.openConnection();
-
-	}
-
-}
-
-
-
-/**
- * Enter virtual reality mode.
- */
-BikeBuilder.prototype.enterVR = function() {
-	console.log("Enter VR");
-	this.vrEffect.setFullScreen(true);
-	this.vrEnabled = true;
-}
-
-
-
-/**
- * Exit VR mode.
- */
-BikeBuilder.prototype.exitVR = function() {
-  console.log("Exit VR.");
-  this.vrEffect.setFullScreen(false);
-  this.vrEnabled = false;
-};
-
-
-
-
-/**
- * Toggle VR on and off.
- */
-BikeBuilder.prototype.toggleVR = function() {
-	if (!this.vrEnabled) {
-		this.enterVR();
-	} else {
-		this.exitVR();
-	}
-}
-
-
-
-/**
- * Handle window resize.
- */
-BikeBuilder.prototype.onWindowResize = function() {
-    console.log("Resize window.");
-    this.camera.aspect = window.innerWidth / window.innerHeight;
-    this.camera.updateProjectionMatrix();
-    this.vrEffect.setSize(window.innerWidth, window.innerHeight);
-}
 
 
 
@@ -381,7 +205,7 @@ BikeBuilder.prototype.render = function() {
 	var elapsed = this.clock.getElapsedTime();
 
 	// Socket pre render routines.
-	this.socket.handleRender(this);
+	// this.socket.handleRender(this);
 
 	// Handle bike rotation.
 	if (this.gamepadControls.active("axis1left") > 0) {
@@ -391,10 +215,10 @@ BikeBuilder.prototype.render = function() {
 		this.bike.obj.rotation.y -= (Math.PI / 2) * delta * this.gamepadControls.active("axis1right");
 	}
 
-	if (this.gamepadControls.active("axis3up") > 0) { this.hud.keyUp = true; } else { this.hud.keyUp = false; }
-	if (this.gamepadControls.active("axis3down") > 0) { this.hud.keyDown = true; } else { this.hud.keyDown = false; }
-	if (this.gamepadControls.active("axis3left") > 0) { this.hud.keyLeft = true; } else { this.hud.keyLeft = false; }
-	if (this.gamepadControls.active("axis3right") > 0) { this.hud.keyRight = true; } else { this.hud.keyRight = false; }
+	// if (this.gamepadControls.active("axis3up") > 0) { this.hud.keyUp = true; } else { this.hud.keyUp = false; }
+	// if (this.gamepadControls.active("axis3down") > 0) { this.hud.keyDown = true; } else { this.hud.keyDown = false; }
+	// if (this.gamepadControls.active("axis3left") > 0) { this.hud.keyLeft = true; } else { this.hud.keyLeft = false; }
+	// if (this.gamepadControls.active("axis3right") > 0) { this.hud.keyRight = true; } else { this.hud.keyRight = false; }
 
 
 	// Handle menu events.
@@ -419,28 +243,21 @@ BikeBuilder.prototype.render = function() {
 	TWEEN.update();
 
 	// Animate wall.
-	this.someWall.animate(delta, elapsed);
+	// this.someWall.animate(delta, elapsed);
 
 	if (this.vrControlsEnabled) {
 
 		// Render scene.
-		//this.controls.update();
 		this.vrControls.update();
-		//this.camera.rotation.y += 1;
-		//this.renderer.clear();
-	    //this.camera.updateProjectionMatrix();
-	    //console.log(this.camera.rotation.y);
-		//this.composer.render();
 
 	    this.camera.position.y = 228/2;
 		this.camera.position.z = 496/2;
 		this.camera.position.x = 261/2;
 		this.camera.updateMatrixWorld();
 
-	    //this.camera.updateProjectionMatrix();
 		this.renderer.clear();
 		this.vrEffect.render(this.scene, this.camera);
-		this.hud.render(this.renderer, delta, true);
+		// this.hud.render(this.renderer, delta, true);
 
 
 
@@ -450,9 +267,9 @@ BikeBuilder.prototype.render = function() {
 
 		// This is a little bit of a hack, but disable these
 		// controls when in socket slave mode.
-		if (this.socket.mode != "slave") {
-			this.controls.update();
-		}
+		// if (this.socket.mode != "slave") {
+		// 	this.controls.update();
+		// }
 		this.camera.updateMatrixWorld();
 		this.camera.updateProjectionMatrix();
 
@@ -460,17 +277,10 @@ BikeBuilder.prototype.render = function() {
 
 		this.renderer.clear();
 		this.renderer.render(this.scene, this.camera);
-		this.hud.render(this.renderer, delta, false);
-		// this.renderer.render(this.hud.scene, this.hud.camera);
+		// this.hud.render(this.renderer, delta, false);
 
 
 	}
-
-	// Socket post render routines.
-	// this.socket.postRender(this);
-
-	// Request new frame.
-	requestAnimationFrame(this.render.bind(this));
 
 };
 
@@ -481,13 +291,13 @@ BikeBuilder.prototype.render = function() {
 /**
  * Run da shit when DOM is ready.
  */
-document.addEventListener("DOMContentLoaded", function() {
-
-  // Just to make console cleaner.
-  console.log("Init");
-
-  // Init scene.
-  var bikeBuilder = new BikeBuilder();
-  bikeBuilder.init();
-
-});
+// document.addEventListener("DOMContentLoaded", function() {
+//
+//   // Just to make console cleaner.
+//   console.log("Init");
+//
+//   // Init scene.
+//   var bikeBuilder = new BikeBuilder();
+//   bikeBuilder.init();
+//
+// });
