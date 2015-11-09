@@ -3,6 +3,31 @@
  */
 var SomeWall = new Function();
 
+
+/* Essential 3D scene objects. */
+SomeWall.prototype.scene = {};
+SomeWall.prototype.camera = {};
+SomeWall.prototype.renderer = {};
+SomeWall.prototype.clock = {};
+
+/* Control mode. */
+// BikeBuilder.prototype.vrControlsEnabled = false;
+
+/* Gamepad input with keyboard fallback. */
+SomeWall.prototype.gamepadControls = {};
+
+/* WebVR controls and effect. */
+// BikeBuilder.prototype.vrControls = {};
+// BikeBuilder.prototype.vrEffect = {};
+// BikeBuilder.prototype.vrEnabled = false;
+
+/* Dimensions */
+SomeWall.prototype.width = window.innerWidth;
+SomeWall.prototype.height = window.innerHeight;
+
+/* Websocket handler. */
+// BikeBuilder.prototype.socket = false;
+
 SomeWall.prototype.photos = [];
 
 SomeWall.prototype.photoUrls = [];
@@ -18,8 +43,91 @@ SomeWall.prototype.lastAnimateTime = 0;
 
 
 
+/**
+ * Init scene.
+ */
+SomeWall.prototype.init = function init(scene, camera, renderer, clock, gamepadControls, loadCallback) {
 
-SomeWall.prototype.init = function(scene, successCallback) {
+	// Oculus or not.
+	// if ($.urlParam("vr") == "true") {
+	// 	this.vrControlsEnabled = true;
+	// }
+
+	this.scene = scene;
+	this.camera = camera;
+	this.renderer = renderer;
+	this.clock = clock;
+	this.gamepadControls = gamepadControls;
+	// this.socket = socket;
+
+	this.initLight();
+	this.initFloor();
+	this.initShapes();
+
+	loadCallback();
+
+	// this.render();
+
+};
+
+
+
+/**
+ * Floor.
+ */
+SomeWall.prototype.initFloor = function() {
+
+	//var geometry = new THREE.PlaneGeometry( 1000, 1000, 1, 1 );
+
+	var geometry = new THREE.CylinderGeometry( 300, 300, 20, 32 );
+
+	var material = new THREE.MeshBasicMaterial( { color: 0x202020, side: THREE.FrontSide } );
+	var floor = new THREE.Mesh( geometry, material );
+
+	floor.material.side = THREE.DoubleSide;
+	floor.position.y = -210;
+	//floor.rotation.x = 90*Math.PI/180;
+	floor.rotation.y = 0;
+	floor.rotation.z = 0;
+	floor.doubleSided = true;
+	floor.receiveShadow = true;
+	this.scene.add(floor);
+
+};
+
+
+
+/**
+ * Lights.
+ */
+SomeWall.prototype.initLight = function() {
+
+    // Shadow.
+	var shadowlight = new THREE.DirectionalLight( 0xffffff, 1.8 );
+	shadowlight.position.set( 0, 50, 0 );
+	shadowlight.castShadow = true;
+	shadowlight.shadowDarkness = 0.1;
+	shadowlight.shadowMapWidth = 1024; // default is 512
+	shadowlight.shadowMapHeight = 1024; // default is 512
+	this.scene.add(shadowlight);
+
+	// Main light.
+	var light = new THREE.PointLight(0xffffff, 1.2, 3000, 1)
+	light.position.set( 0, 400, 0 );
+	this.scene.add(light);
+
+	var light2 = new THREE.PointLight(0xffffff, 1.2, 500, 1)
+	light2.position.set( 0, 100, 200 );
+	this.scene.add(light2);
+
+	var light3 = new THREE.PointLight(0xffffff, 1.2, 500, 1)
+	light3.position.set( 0, 100, -200 );
+	this.scene.add(light3);
+
+};
+
+
+SomeWall.prototype.initShapes = function() {
 
 	for (var i = 1; i <= 26; i++) {
 		this.photoUrls.push("img/pelago/thumb/" + i + ".jpg");
@@ -58,7 +166,10 @@ SomeWall.prototype.init = function(scene, successCallback) {
 			plane.positionTo = { x: plane.posToX, z: plane.posToZ };
 
 			plane.position.x = plane.posFromX;
-			plane.position.z = plane.posFromY;
+			plane.position.z = plane.posFromZ;
+
+			plane.position.x = plane.posToX;
+			plane.position.z = plane.posToZ;
 			plane.position.y = row * (this.boxSize + this.rowSpacing) - this.rowOffset;
 			plane.rotation.y = 2 * Math.PI * progress + Math.PI;
 			plane.tweening = true;
@@ -66,7 +177,7 @@ SomeWall.prototype.init = function(scene, successCallback) {
 			// Hide plane until texture is loaded.
 			plane.visible = false;
 
-			scene.add(plane);
+			this.scene.add(plane);
 			this.photos.push(plane);
 
 			// Instantiate a loader.
@@ -93,6 +204,12 @@ SomeWall.prototype.init = function(scene, successCallback) {
 
 						// Make visible.
 						photo.visible = true;
+
+						// console.log(photo.position);
+
+						// console.log("Photo loaded");
+
+						return;
 
 						// Animate in.
 						var delay = 1000 + 5000 * Math.random();
@@ -129,7 +246,10 @@ SomeWall.prototype.init = function(scene, successCallback) {
 /**
  * Animate wall.
  */
-SomeWall.prototype.animate = function(delta, elapsed) {
+SomeWall.prototype.render = function() {
+
+	var delta = this.clock.getDelta();
+	var elapsed = this.clock.getElapsedTime();
 
 	var l = this.photos.length;
 

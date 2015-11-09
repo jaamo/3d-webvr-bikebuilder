@@ -15,7 +15,6 @@ var BikeBuilder = new Function();
 BikeBuilder.prototype.scene = {};
 BikeBuilder.prototype.camera = {};
 BikeBuilder.prototype.renderer = {};
-// BikeBuilder.prototype.composer = {};
 BikeBuilder.prototype.clock = {};
 
 /* Control mode. */
@@ -219,8 +218,7 @@ BikeBuilder.prototype.render = function() {
 	// if (this.gamepadControls.active("axis3down") > 0) { this.hud.keyDown = true; } else { this.hud.keyDown = false; }
 	// if (this.gamepadControls.active("axis3left") > 0) { this.hud.keyLeft = true; } else { this.hud.keyLeft = false; }
 	// if (this.gamepadControls.active("axis3right") > 0) { this.hud.keyRight = true; } else { this.hud.keyRight = false; }
-
-
+	
 	// Handle menu events.
 	this.gamepadControls.initPressed();
 	if (this.gamepadControls.pressed("axis3up")) {
@@ -241,46 +239,6 @@ BikeBuilder.prototype.render = function() {
 
 	// Run tweens.
 	TWEEN.update();
-
-	// Animate wall.
-	// this.someWall.animate(delta, elapsed);
-
-	if (this.vrControlsEnabled) {
-
-		// Render scene.
-		this.vrControls.update();
-
-	    this.camera.position.y = 228/2;
-		this.camera.position.z = 496/2;
-		this.camera.position.x = 261/2;
-		this.camera.updateMatrixWorld();
-
-		this.renderer.clear();
-		this.vrEffect.render(this.scene, this.camera);
-		// this.hud.render(this.renderer, delta, true);
-
-
-
-	} else {
-
-		// Render scene.
-
-		// This is a little bit of a hack, but disable these
-		// controls when in socket slave mode.
-		// if (this.socket.mode != "slave") {
-		// 	this.controls.update();
-		// }
-		this.camera.updateMatrixWorld();
-		this.camera.updateProjectionMatrix();
-
-		//this.hud.animate(this.scene, this.camera);
-
-		this.renderer.clear();
-		this.renderer.render(this.scene, this.camera);
-		// this.hud.render(this.renderer, delta, false);
-
-
-	}
 
 };
 

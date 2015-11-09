@@ -35,6 +35,8 @@ ThreeDScene.prototype.height = window.innerHeight;
 /* Websocket handler. */
 ThreeDScene.prototype.socket = false;
 
+/* Active scene. */
+ThreeDScene.prototype.activeScene = false;
 
 
 /**
@@ -58,8 +60,14 @@ ThreeDScene.prototype.init = function init() {
 	this.initSocket();
     this.initCamera();
 
-	this.bikeBuilder = new BikeBuilder();
-	this.bikeBuilder.init(this.scene, this.camera, this.renderer, this.clock, this.gamepadControls, this.renderBike.bind(this));
+	// this.bikeBuilder = new BikeBuilder();
+	// this.bikeBuilder.init(this.scene, this.camera, this.renderer, this.clock, this.gamepadControls, this.render.bind(this));
+
+	this.someWall = new SomeWall();
+	this.activeScene = this.someWall;
+	this.someWall.init(this.scene, this.camera, this.renderer, this.clock, this.gamepadControls, this.render.bind(this));
+
+
 
 	// this.initLight();
 	// this.initFloor();
@@ -70,12 +78,53 @@ ThreeDScene.prototype.init = function init() {
 
 
 
-ThreeDScene.prototype.renderBike = function() {
+ThreeDScene.prototype.render = function() {
 
-	this.bikeBuilder.render();
+	this.activeScene.render();
+
+
+	// Animate wall.
+
+	if (this.vrControlsEnabled) {
+
+		// Render scene.
+		this.vrControls.update();
+
+	    this.camera.position.y = 228/2;
+		this.camera.position.z = 496/2;
+		this.camera.position.x = 261/2;
+		this.camera.updateMatrixWorld();
+
+		this.renderer.clear();
+		this.vrEffect.render(this.scene, this.camera);
+		// this.hud.render(this.renderer, delta, true);
+
+
+
+	} else {
+
+		// Render scene.
+
+		// This is a little bit of a hack, but disable these
+		// controls when in socket slave mode.
+		// if (this.socket.mode != "slave") {
+		// 	this.controls.update();
+		// }
+		this.camera.updateMatrixWorld();
+		this.camera.updateProjectionMatrix();
+
+		//this.hud.animate(this.scene, this.camera);
+
+		this.renderer.clear();
+		this.renderer.render(this.scene, this.camera);
+		// this.hud.render(this.renderer, delta, false);
+
+
+	}
+
 
 	// Request new frame.
-	requestAnimationFrame(this.renderBike.bind(this));
+	requestAnimationFrame(this.render.bind(this));
 
 }
 
