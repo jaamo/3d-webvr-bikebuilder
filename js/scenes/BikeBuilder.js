@@ -16,6 +16,7 @@ BikeBuilder.prototype.scene = {};
 BikeBuilder.prototype.camera = {};
 BikeBuilder.prototype.renderer = {};
 BikeBuilder.prototype.clock = {};
+BikeBuilder.prototype.light = {};
 
 /* Control mode. */
 // BikeBuilder.prototype.vrControlsEnabled = false;
@@ -62,6 +63,7 @@ BikeBuilder.prototype.init = function init(scene, camera, renderer, clock, gamep
 	// this.initSocket();
     // this.initCamera();
 
+	this.initRenderer();
 	this.initLight();
 	this.initFloor();
 	this.initShapes(function() {
@@ -71,6 +73,15 @@ BikeBuilder.prototype.init = function init(scene, camera, renderer, clock, gamep
 	// this.render();
 
 };
+
+
+
+/**
+ * Init camera.
+ */
+BikeBuilder.prototype.initRenderer = function() {
+	this.renderer.setClearColor( 0xffffff , 1 );
+}
 
 
 
@@ -106,26 +117,26 @@ BikeBuilder.prototype.initCamera = function() {
 BikeBuilder.prototype.initLight = function() {
 
     // Shadow.
-	var shadowlight = new THREE.DirectionalLight( 0xffffff, 1.8 );
-	shadowlight.position.set( 0, 50, 0 );
-	shadowlight.castShadow = true;
-	shadowlight.shadowDarkness = 0.1;
-	shadowlight.shadowMapWidth = 1024; // default is 512
-	shadowlight.shadowMapHeight = 1024; // default is 512
-	this.scene.add(shadowlight);
+	this.shadowlight = new THREE.DirectionalLight( 0xffffff, 1.8 );
+	this.shadowlight.position.set( 0, 200, 0 );
+	this.shadowlight.castShadow = true;
+	this.shadowlight.shadowDarkness = 0.2;
+	this.shadowlight.shadowMapWidth = 1024; // default is 512
+	this.shadowlight.shadowMapHeight = 1024; // default is 512
+	this.scene.add(this.shadowlight);
 
 	// Main light.
-	var light = new THREE.PointLight(0xffffff, 1.2, 3000, 1)
-	light.position.set( 0, 400, 0 );
-	this.scene.add(light);
+	this.light = new THREE.PointLight(0xffffff, 1, 1000, 1);
+	this.light.position.set( 0, 300, 200 );
+	this.scene.add(this.light);
 
-	var light2 = new THREE.PointLight(0xffffff, 1.2, 500, 1)
-	light2.position.set( 0, 100, 200 );
-	this.scene.add(light2);
-
-	var light3 = new THREE.PointLight(0xffffff, 1.2, 500, 1)
-	light3.position.set( 0, 100, -200 );
-	this.scene.add(light3);
+	// var light2 = new THREE.PointLight(0xffffff, 1.2, 500, 1)
+	// light2.position.set( 0, 100, 200 );
+	// this.scene.add(light2);
+	//
+	// var light3 = new THREE.PointLight(0xffffff, 1.2, 500, 1)
+	// light3.position.set( 0, 100, -200 );
+	// this.scene.add(light3);
 
 };
 
@@ -136,16 +147,16 @@ BikeBuilder.prototype.initLight = function() {
  */
 BikeBuilder.prototype.initFloor = function() {
 
-	//var geometry = new THREE.PlaneGeometry( 1000, 1000, 1, 1 );
+	var geometry = new THREE.PlaneGeometry( 500, 500, 1, 1 );
 
-	var geometry = new THREE.CylinderGeometry( 300, 300, 20, 32 );
+	//var geometry = new THREE.CylinderGeometry( 600, 600, 20, 32 );
 
-	var material = new THREE.MeshBasicMaterial( { color: 0x202020, side: THREE.FrontSide } );
+	var material = new THREE.MeshBasicMaterial( { color: 0xffffff, side: THREE.FrontSide } );
 	var floor = new THREE.Mesh( geometry, material );
 
 	floor.material.side = THREE.DoubleSide;
 	floor.position.y = -210;
-	//floor.rotation.x = 90*Math.PI/180;
+	floor.rotation.x = 90*Math.PI/180;
 	floor.rotation.y = 0;
 	floor.rotation.z = 0;
 	floor.doubleSided = true;
@@ -218,7 +229,7 @@ BikeBuilder.prototype.render = function() {
 	// if (this.gamepadControls.active("axis3down") > 0) { this.hud.keyDown = true; } else { this.hud.keyDown = false; }
 	// if (this.gamepadControls.active("axis3left") > 0) { this.hud.keyLeft = true; } else { this.hud.keyLeft = false; }
 	// if (this.gamepadControls.active("axis3right") > 0) { this.hud.keyRight = true; } else { this.hud.keyRight = false; }
-	
+
 	// Handle menu events.
 	this.gamepadControls.initPressed();
 	if (this.gamepadControls.pressed("axis3up")) {
@@ -237,12 +248,34 @@ BikeBuilder.prototype.render = function() {
 	}
 	this.gamepadControls.resetPressed();
 
-	// Run tweens.
-	TWEEN.update();
-
 };
 
 
+
+/**
+ * Fade scene in.
+ */
+BikeBuilder.prototype.fadeOut = function(callback) {
+
+	var from = { value: 1 };
+	var to = { value: 0 };
+
+	var tween = new TWEEN.Tween(from)
+		.to(to, 5000)
+		.onUpdate(function(){
+			this.light.shadowlight = from.value;
+			this.light.intensity = from.value;
+			console.log(this.light.intensity);
+		}.bind(this))
+		.onComplete(function() {
+			callback();
+		})
+		.delay(0)
+		.easing(TWEEN.Easing.Cubic.Out)
+		.start();
+
+
+}
 
 
 

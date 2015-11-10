@@ -36,7 +36,13 @@ ThreeDScene.prototype.height = window.innerHeight;
 ThreeDScene.prototype.socket = false;
 
 /* Active scene. */
-ThreeDScene.prototype.activeScene = false;
+ThreeDScene.prototype.activeScene = 0;
+ThreeDScene.prototype.allScenes = [];
+
+/* Enable rendering. */
+ThreeDScene.prototype.enableRender = true;
+
+
 
 
 /**
@@ -60,28 +66,60 @@ ThreeDScene.prototype.init = function init() {
 	this.initSocket();
     this.initCamera();
 
-	// this.bikeBuilder = new BikeBuilder();
-	// this.bikeBuilder.init(this.scene, this.camera, this.renderer, this.clock, this.gamepadControls, this.render.bind(this));
-
+	// Init scenes.
+	this.bikeBuilder = new BikeBuilder();
 	this.someWall = new SomeWall();
-	this.activeScene = this.someWall;
-	this.someWall.init(this.scene, this.camera, this.renderer, this.clock, this.gamepadControls, this.render.bind(this));
 
+	// Add scenes to list.
+	this.allScenes.push(this.someWall);
+	this.allScenes.push(this.bikeBuilder);
 
+	// Init the first.
+	this.allScenes[this.activeScene].init(this.scene, this.camera, this.renderer, this.clock, this.gamepadControls, this.render.bind(this));
 
-	// this.initLight();
-	// this.initFloor();
-	// this.initShapes(); // <- triggers render loop when load complete
-
+	// Handle keypress.
+	$(document).keypress(function(e){
+		if (e.keyCode == 13) {
+			this.toggleScenes();
+		}
+	}.bind(this));
 
 };
 
 
 
+/**
+ * Toggle between scenes.
+ */
+ThreeDScene.prototype.toggleScenes = function() {
+
+	// Stop render loop.
+	this.enableRender = false;
+
+	// Wait for last render to be ready.
+	setTimeout(function() {
+
+		// Clear everything.
+		this.clearScene();
+
+		// Set new active scene.
+		this.activeScene = (this.activeScene + 1) % this.allScenes.length;
+
+		// Init new scene and start rendering.
+		this.enableRender = true;
+		this.allScenes[this.activeScene].init(this.scene, this.camera, this.renderer, this.clock, this.gamepadControls, this.render.bind(this));
+
+	}.bind(this), 500);
+
+}
+
+
+
 ThreeDScene.prototype.render = function() {
 
-	this.activeScene.render();
+	this.allScenes[this.activeScene].render();
 
+	TWEEN.update();
 
 	// Animate wall.
 
@@ -124,10 +162,20 @@ ThreeDScene.prototype.render = function() {
 
 
 	// Request new frame.
-	requestAnimationFrame(this.render.bind(this));
+	if (this.enableRender) {
+		requestAnimationFrame(this.render.bind(this));
+	}
 
 }
 
+
+
+ThreeDScene.prototype.clearScene = function() {
+	for(var i = this.scene.children.length - 1; i >= 0; i--) {
+		obj = this.scene.children[i];
+		this.scene.remove(obj);
+	}
+}
 
 
 /**

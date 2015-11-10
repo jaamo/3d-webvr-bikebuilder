@@ -60,15 +60,26 @@ SomeWall.prototype.init = function init(scene, camera, renderer, clock, gamepadC
 	this.gamepadControls = gamepadControls;
 	// this.socket = socket;
 
+	this.initRenderer();
 	this.initLight();
-	this.initFloor();
+	// this.initFloor();
 	this.initShapes();
+	this.initLogo();
 
 	loadCallback();
 
 	// this.render();
 
 };
+
+
+
+/**
+ * Init camera.
+ */
+SomeWall.prototype.initRenderer = function() {
+	this.renderer.setClearColor( 0x000000 , 1 );
+}
 
 
 
@@ -98,31 +109,53 @@ SomeWall.prototype.initFloor = function() {
 
 
 /**
+ * Floor.
+ */
+SomeWall.prototype.initLogo = function() {
+
+	var geometry = new THREE.PlaneGeometry( 1000, 1000, 1, 1 );
+
+	// var material = new THREE.MeshBasicMaterial({
+	// 	color: 0xff0000,
+	// 	side: THREE.FrontSide
+	// });
+
+	var texture = THREE.ImageUtils.loadTexture( "img/slush_logo2.jpg" );
+	texture.wrapS = THREE.RepeatWrapping;
+	texture.wrapT = THREE.RepeatWrapping;
+	texture.repeat.set(1, 1);
+
+	var material = new THREE.MeshBasicMaterial({
+		map: texture,
+		side: THREE.DoubleSide
+	});
+
+
+	var floor = new THREE.Mesh( geometry, material );
+
+
+
+
+	floor.material.side = THREE.DoubleSide;
+	floor.position.x = 2000;
+	floor.rotation.y = -Math.PI / 2;
+	floor.doubleSided = true;
+	this.scene.add(floor);
+
+
+}
+
+
+
+/**
  * Lights.
  */
 SomeWall.prototype.initLight = function() {
 
-    // Shadow.
-	var shadowlight = new THREE.DirectionalLight( 0xffffff, 1.8 );
-	shadowlight.position.set( 0, 50, 0 );
-	shadowlight.castShadow = true;
-	shadowlight.shadowDarkness = 0.1;
-	shadowlight.shadowMapWidth = 1024; // default is 512
-	shadowlight.shadowMapHeight = 1024; // default is 512
-	this.scene.add(shadowlight);
-
 	// Main light.
 	var light = new THREE.PointLight(0xffffff, 1.2, 3000, 1)
-	light.position.set( 0, 400, 0 );
+	light.position.set( 0, 0, 0 );
 	this.scene.add(light);
-
-	var light2 = new THREE.PointLight(0xffffff, 1.2, 500, 1)
-	light2.position.set( 0, 100, 200 );
-	this.scene.add(light2);
-
-	var light3 = new THREE.PointLight(0xffffff, 1.2, 500, 1)
-	light3.position.set( 0, 100, -200 );
-	this.scene.add(light3);
 
 };
 
@@ -134,9 +167,9 @@ SomeWall.prototype.initShapes = function() {
 	}
 
 	this.photos = [];
-	this.photosPerRow = 15;
+	this.photosPerRow = 10;
 	this.maxRows = 10;
-	this.rowSpacing = 25;
+	this.rowSpacing = 600;
 	var distance = 1000;
 	this.boxSize = 400;
 	this.rowOffset = this.maxRows * (this.boxSize + this.rowSpacing) / 2;
@@ -145,7 +178,7 @@ SomeWall.prototype.initShapes = function() {
 		for (var i = 0; i < this.photosPerRow; i++) {
 
 			var progress = i / this.photosPerRow;
-			var randomDistance = 1000 + 2000 * Math.random();
+			var randomDistance = 600 + 1000 * Math.random();
 
 			var geometry = new THREE.PlaneGeometry(this.boxSize, this.boxSize, 1);
 			var material = new THREE.MeshPhongMaterial({
@@ -165,13 +198,19 @@ SomeWall.prototype.initShapes = function() {
 			plane.positionFrom = { x: plane.posFromX, z: plane.posFromZ };
 			plane.positionTo = { x: plane.posToX, z: plane.posToZ };
 
-			plane.position.x = plane.posFromX;
-			plane.position.z = plane.posFromZ;
+			// plane.position.x = plane.posFromX;
+			// plane.position.z = plane.posFromZ;
 
-			plane.position.x = plane.posToX;
-			plane.position.z = plane.posToZ;
-			plane.position.y = row * (this.boxSize + this.rowSpacing) - this.rowOffset;
-			plane.rotation.y = 2 * Math.PI * progress + Math.PI;
+			// plane.position.x = plane.posToX;
+			// plane.position.z = plane.posToZ;
+			// plane.position.y = row * (this.boxSize + this.rowSpacing) - this.rowOffset;
+
+			plane.position.y = plane.posFromX;
+			plane.position.z = plane.posFromZ;
+			plane.position.x = row * (this.boxSize + this.rowSpacing) - this.rowOffset;
+
+
+			plane.rotation.x = 2 * Math.PI * -progress + Math.PI;
 			plane.tweening = true;
 
 			// Hide plane until texture is loaded.
@@ -209,14 +248,12 @@ SomeWall.prototype.initShapes = function() {
 
 						// console.log("Photo loaded");
 
-						return;
-
 						// Animate in.
 						var delay = 1000 + 5000 * Math.random();
 						var duration =  4000 + 4000 * Math.random();
 						var tween = new TWEEN.Tween(positionFrom).to(positionTo, duration);
 						tween.onUpdate(function(){
-							photo.position.x = positionFrom.x;
+							photo.position.y = positionFrom.x;
 							photo.position.z = positionFrom.z;
 						});
 						tween.onComplete(function() {
@@ -257,8 +294,8 @@ SomeWall.prototype.render = function() {
 	for (var i = 0; i < l; i++) {
 		var row = Math.floor(i / this.photosPerRow);
 		var photo = this.photos[i];
-		var y = (100 * elapsed + row * (this.boxSize + this.rowSpacing)) % (2 * this.rowOffset);
-		photo.position.y = this.rowOffset - y;
+		var x = (100 * elapsed + row * (this.boxSize + this.rowSpacing)) % (2 * this.rowOffset);
+		photo.position.x = this.rowOffset - x;
 	}
 
 	// Apply "fly in and out" tween to random elements.
@@ -299,7 +336,7 @@ SomeWall.prototype.applyTween = function(photo) {
 	var tween = new TWEEN.Tween(positionTo)
 		.to(positionFrom, duration)
 		.onUpdate(function(){
-			photo.position.x = positionTo.x;
+			photo.position.y = positionTo.x;
 			photo.position.z = positionTo.z;
 		})
 		.onComplete(function() {
@@ -311,7 +348,7 @@ SomeWall.prototype.applyTween = function(photo) {
 			var tween = new TWEEN.Tween(positionFrom)
 				.to(positionTo, duration)
 				.onUpdate(function(){
-					photo.position.x = positionFrom.x;
+					photo.position.y = positionFrom.x;
 					photo.position.z = positionFrom.z;
 				})
 				.onComplete(function() {
