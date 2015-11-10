@@ -162,8 +162,29 @@ HUD.prototype.getItem = function() {
 }
 
 HUD.prototype.getOption = function() {
-	return this.items[this.selectedItem].options[ this.items[this.selectedItem].selected ].key;
+	return this.items[this.selectedItem].selected [ this.items[this.selectedItem].selected ].key;
 }
+
+HUD.prototype.getItemLabel = function(itemId) {
+	return this.items[itemId].key;
+}
+
+HUD.prototype.getItemOptionKey = function(itemId) {
+	return this.items[itemId].options[ this.items[itemId].selected ].key;
+}
+
+/**
+ * Toggle options within a group.
+ * @param  {String} item
+ */
+HUD.prototype.toggleOption = function(itemId) {
+
+	var nextOption = (this.items[itemId].selected + 1) % this.items[itemId].options.length;
+	this.items[itemId].selected = nextOption;
+
+
+}
+
 
 
 HUD.prototype.render = function(renderer, delta, vr) {

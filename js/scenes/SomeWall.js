@@ -41,6 +41,7 @@ SomeWall.prototype.rowSpacing = 25;
 /* Time when photo tween started last time */
 SomeWall.prototype.lastAnimateTime = 0;
 
+SomeWall.prototype.elapsedOffset = 0;
 
 
 /**
@@ -115,12 +116,7 @@ SomeWall.prototype.initLogo = function() {
 
 	var geometry = new THREE.PlaneGeometry( 1000, 1000, 1, 1 );
 
-	// var material = new THREE.MeshBasicMaterial({
-	// 	color: 0xff0000,
-	// 	side: THREE.FrontSide
-	// });
-
-	var texture = THREE.ImageUtils.loadTexture( "img/slush_logo2.jpg" );
+	var texture = THREE.ImageUtils.loadTexture( "img/slush_logo2-hashtag.jpg" );
 	texture.wrapS = THREE.RepeatWrapping;
 	texture.wrapT = THREE.RepeatWrapping;
 	texture.repeat.set(1, 1);
@@ -130,17 +126,38 @@ SomeWall.prototype.initLogo = function() {
 		side: THREE.DoubleSide
 	});
 
+	var logo1 = new THREE.Mesh( geometry, material );
 
-	var floor = new THREE.Mesh( geometry, material );
+	logo1.material.side = THREE.DoubleSide;
+	logo1.position.z = -3000;
+	logo1.rotation.y = 0;//-Math.PI / 4;
+	logo1.doubleSided = true;
+	this.scene.add(logo1);
 
 
 
+	var geometry2 = new THREE.PlaneGeometry( 1000, 1000, 1, 1 );
 
-	floor.material.side = THREE.DoubleSide;
-	floor.position.x = 2000;
-	floor.rotation.y = -Math.PI / 2;
-	floor.doubleSided = true;
-	this.scene.add(floor);
+	var texture2 = THREE.ImageUtils.loadTexture( "img/evermade-hamburger-black.jpg" );
+	texture2.wrapS = THREE.RepeatWrapping;
+	texture2.wrapT = THREE.RepeatWrapping;
+	texture2.repeat.set(1, 1);
+
+	var material2 = new THREE.MeshBasicMaterial({
+		map: texture2,
+		side: THREE.DoubleSide
+	});
+
+	var logo2 = new THREE.Mesh( geometry2, material2 );
+
+	logo2.material.side = THREE.DoubleSide;
+	logo2.position.z = 3000;
+	logo2.rotation.y = Math.PI;
+	logo2.doubleSided = true;
+	this.scene.add(logo2);
+
+
+
 
 
 }
@@ -162,8 +179,8 @@ SomeWall.prototype.initLight = function() {
 
 SomeWall.prototype.initShapes = function() {
 
-	for (var i = 1; i <= 26; i++) {
-		this.photoUrls.push("img/pelago/thumb/" + i + ".jpg");
+	for (var i = 0; i < 20; i++) {
+		this.photoUrls.push("img/slush/thumb/" + i + ".jpg");
 	}
 
 	this.photos = [];
@@ -206,11 +223,16 @@ SomeWall.prototype.initShapes = function() {
 			// plane.position.y = row * (this.boxSize + this.rowSpacing) - this.rowOffset;
 
 			plane.position.y = plane.posFromX;
-			plane.position.z = plane.posFromZ;
-			plane.position.x = row * (this.boxSize + this.rowSpacing) - this.rowOffset;
+			plane.position.x = plane.posFromZ;
+			plane.position.z = row * (this.boxSize + this.rowSpacing) - this.rowOffset;
 
+			plane.eulerOrder = "ZYX";
+			plane.rotation.z = 2 * Math.PI * progress + Math.PI;
+			plane.rotation.y = Math.PI / 2;
+			if (plane.position.x > 0) {
+				plane.rotation.x = Math.PI;
+			}
 
-			plane.rotation.x = 2 * Math.PI * -progress + Math.PI;
 			plane.tweening = true;
 
 			// Hide plane until texture is loaded.
@@ -244,17 +266,13 @@ SomeWall.prototype.initShapes = function() {
 						// Make visible.
 						photo.visible = true;
 
-						// console.log(photo.position);
-
-						// console.log("Photo loaded");
-
 						// Animate in.
 						var delay = 1000 + 5000 * Math.random();
 						var duration =  4000 + 4000 * Math.random();
 						var tween = new TWEEN.Tween(positionFrom).to(positionTo, duration);
 						tween.onUpdate(function(){
 							photo.position.y = positionFrom.x;
-							photo.position.z = positionFrom.z;
+							photo.position.x = positionFrom.z;
 						});
 						tween.onComplete(function() {
 							photo.tweening = false;
@@ -290,12 +308,23 @@ SomeWall.prototype.render = function() {
 
 	var l = this.photos.length;
 
+
+	// Use controller to adjust speed.
+	if (this.gamepadControls.active("axis1up") > 0) {
+		this.elapsedOffset += 50 * delta * this.gamepadControls.active("axis1up");
+	}
+	if (this.gamepadControls.active("axis1down") > 0) {
+		this.elapsedOffset -= 2 * delta * this.gamepadControls.active("axis1down");
+	}
+
+
 	// Let photos fall.
 	for (var i = 0; i < l; i++) {
 		var row = Math.floor(i / this.photosPerRow);
 		var photo = this.photos[i];
-		var x = (100 * elapsed + row * (this.boxSize + this.rowSpacing)) % (2 * this.rowOffset);
-		photo.position.x = this.rowOffset - x;
+		// photo.rotation.y += Math.PI / 360;
+		var x = (100 * (elapsed + this.elapsedOffset) + row * (this.boxSize + this.rowSpacing)) % (2 * this.rowOffset);
+		photo.position.z = -this.rowOffset + x;
 	}
 
 	// Apply "fly in and out" tween to random elements.
@@ -337,7 +366,7 @@ SomeWall.prototype.applyTween = function(photo) {
 		.to(positionFrom, duration)
 		.onUpdate(function(){
 			photo.position.y = positionTo.x;
-			photo.position.z = positionTo.z;
+			photo.position.x = positionTo.z;
 		})
 		.onComplete(function() {
 
@@ -349,7 +378,7 @@ SomeWall.prototype.applyTween = function(photo) {
 				.to(positionTo, duration)
 				.onUpdate(function(){
 					photo.position.y = positionFrom.x;
-					photo.position.z = positionFrom.z;
+					photo.position.x = positionFrom.z;
 				})
 				.onComplete(function() {
 					photo.tweening = false;

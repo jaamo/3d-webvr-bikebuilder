@@ -1,0 +1,15 @@
+{
+  "name": "igcrawler",
+  "version": "1.0.0",
+  "description": "",
+  "main": "IGCrawler.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "instagram-node": "^0.5.8",
+    "request": "^2.65.0"
+  }
+}

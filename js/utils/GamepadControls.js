@@ -22,10 +22,12 @@ GamepadControls.prototype.pressThreshold = 0.5;
 GamepadControls.prototype.keyMap = {
 	"axis1left": 65,
 	"axis1right": 68,
+	"axis1up": 87,
+	"axis1down": 83,
 	"axis3up": 73,
-	"axis3down": 75,
-	"axis3left": 74,
-	"axis3right": 76
+	"button1": 75,
+	"button2": 74,
+	"button3": 76
 };
 
 
@@ -109,6 +111,14 @@ GamepadControls.prototype.active = function(fn) {
 			return Math.abs(this.gamepad.axes[0]);
 		}
 
+		if (fn == "axis1up" && this.gamepad.axes[1] < -this.threshold) {
+			return Math.abs(this.gamepad.axes[1]);
+		}
+
+		if (fn == "axis1down" && this.gamepad.axes[1] > this.threshold) {
+			return Math.abs(this.gamepad.axes[1]);
+		}
+
 		if (fn == "axis3left" && this.gamepad.axes[2] < -this.threshold) {
 			return Math.abs(this.gamepad.axes[2]);
 		}
@@ -182,6 +192,11 @@ GamepadControls.prototype.initPressed = function() {
 		} else {
 			this.keys["axis3down"] = false;
 		}
+
+		this.keys["button0"] = this.gamepad.buttons[0].pressed;
+		this.keys["button1"] = this.gamepad.buttons[1].pressed;
+		this.keys["button2"] = this.gamepad.buttons[2].pressed;
+		this.keys["button3"] = this.gamepad.buttons[3].pressed;
 
 	}
 

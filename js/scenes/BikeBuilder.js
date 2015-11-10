@@ -66,6 +66,7 @@ BikeBuilder.prototype.init = function init(scene, camera, renderer, clock, gamep
 	this.initRenderer();
 	this.initLight();
 	this.initFloor();
+	this.initLogo();
 	this.initShapes(function() {
 		loadCallback();
 	}); // <- triggers render loop when load complete
@@ -167,6 +168,36 @@ BikeBuilder.prototype.initFloor = function() {
 
 
 
+
+/**
+ * Floor.
+ */
+BikeBuilder.prototype.initLogo = function() {
+
+	var geometry2 = new THREE.PlaneGeometry( 1000, 1000, 1, 1 );
+
+	var texture2 = THREE.ImageUtils.loadTexture( "img/evermade-hamburger-white.jpg" );
+	texture2.wrapS = THREE.RepeatWrapping;
+	texture2.wrapT = THREE.RepeatWrapping;
+	texture2.repeat.set(1, 1);
+
+	var material2 = new THREE.MeshBasicMaterial({
+		map: texture2,
+		side: THREE.DoubleSide
+	});
+
+	var logo2 = new THREE.Mesh( geometry2, material2 );
+
+	logo2.material.side = THREE.DoubleSide;
+	logo2.position.z = 5000;
+	logo2.rotation.y = Math.PI;
+	logo2.doubleSided = true;
+	this.scene.add(logo2);
+
+}
+
+
+
 /**
  * Shapes.
  */
@@ -232,6 +263,21 @@ BikeBuilder.prototype.render = function() {
 
 	// Handle menu events.
 	this.gamepadControls.initPressed();
+
+	if (this.gamepadControls.pressed("button1") || this.gamepadControls.pressed("button0")) {
+		this.hud.toggleOption(0);
+		this.bike.setColor(this.hud.getItemLabel(0), this.hud.getItemOptionKey(0));
+	}
+	if (this.gamepadControls.pressed("button2")) {
+		this.hud.toggleOption(1);
+		this.bike.setColor(this.hud.getItemLabel(1), this.hud.getItemOptionKey(1));
+	}
+	if (this.gamepadControls.pressed("button3")) {
+		this.hud.toggleOption(2);
+		this.bike.setColor(this.hud.getItemLabel(2), this.hud.getItemOptionKey(2));
+	}
+
+	/*
 	if (this.gamepadControls.pressed("axis3up")) {
 		this.hud.previousItem();
 	}
@@ -246,49 +292,7 @@ BikeBuilder.prototype.render = function() {
 		var options = this.hud.nextOption();
 		this.bike.setColor(this.hud.getItem(), this.hud.getOption());
 	}
+	*/
 	this.gamepadControls.resetPressed();
 
 };
-
-
-
-/**
- * Fade scene in.
- */
-BikeBuilder.prototype.fadeOut = function(callback) {
-
-	var from = { value: 1 };
-	var to = { value: 0 };
-
-	var tween = new TWEEN.Tween(from)
-		.to(to, 5000)
-		.onUpdate(function(){
-			this.light.shadowlight = from.value;
-			this.light.intensity = from.value;
-			console.log(this.light.intensity);
-		}.bind(this))
-		.onComplete(function() {
-			callback();
-		})
-		.delay(0)
-		.easing(TWEEN.Easing.Cubic.Out)
-		.start();
-
-
-}
-
-
-
-/**
- * Run da shit when DOM is ready.
- */
-// document.addEventListener("DOMContentLoaded", function() {
-//
-//   // Just to make console cleaner.
-//   console.log("Init");
-//
-//   // Init scene.
-//   var bikeBuilder = new BikeBuilder();
-//   bikeBuilder.init();
-//
-// });

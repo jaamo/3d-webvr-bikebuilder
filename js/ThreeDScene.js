@@ -128,9 +128,9 @@ ThreeDScene.prototype.render = function() {
 		// Render scene.
 		this.vrControls.update();
 
-	    this.camera.position.y = 228/2;
-		this.camera.position.z = 496/2;
-		this.camera.position.x = 261/2;
+	    // this.camera.position.y = 228/2;
+		// this.camera.position.z = 496/2;
+		// this.camera.position.x = 261/2;
 		this.camera.updateMatrixWorld();
 
 		this.renderer.clear();
@@ -257,6 +257,7 @@ ThreeDScene.prototype.initVR = function() {
 
 		// Init VR controls.
 		this.vrControls = new THREE.VRControls(this.camera);
+		this.vrControls.scale = 2000;
 
 		// Init VR effect.
 		this.vrEffect = new THREE.VREffect(this.renderer);
