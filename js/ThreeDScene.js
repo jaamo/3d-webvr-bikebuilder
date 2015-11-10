@@ -60,11 +60,11 @@ ThreeDScene.prototype.init = function init() {
 	this.scene = new THREE.Scene();
 
 	this.initRenderer();
-	this.initVR();
 	this.initClock();
 	this.initControls();
 	this.initSocket();
     this.initCamera();
+	this.initVR();
 
 	// Init scenes.
 	this.bikeBuilder = new BikeBuilder();
